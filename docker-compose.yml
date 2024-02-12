@@ -1,0 +1,28 @@
+version: "3"
+
+services:
+  db:
+    tty: true
+    image: keinos/sqlite3:latest
+    restart: always
+    shm_size: 256mb
+    ports:
+      - "6432:6432"
+    user: root
+
+  bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - DB_NAME=notifier_tgbot.db
+      - DB_PATH=/bot/
+      - BOT_TOKEN=5857022841:AAFXwiSE8Ed7PjYzDW0KAGfxDaRtVu0Sn8A
+    volumes:
+      - ".:/bot"
+    network_mode: host
+    command:
+      /bin/sh -c "poetry run alembic upgrade head 
+      && poetry run python main.py"
+    depends_on:
+      - db
