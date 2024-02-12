@@ -1,8 +1,9 @@
 """ Module init """
 
-from _decimal import Decimal
 from json import JSONEncoder
 from typing import Any
+
+from _decimal import Decimal
 
 
 class Encoder(JSONEncoder):

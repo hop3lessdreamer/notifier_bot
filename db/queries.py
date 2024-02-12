@@ -23,8 +23,6 @@ from utils.transform_types import from_dict_to_json
 class Subscription:
     product: Product | None = None
     user_product: UserProduct | None = None
-    __left_more: bool = False
-    __right_more: bool = False
 
     @cached_property
     def empty(self) -> bool:

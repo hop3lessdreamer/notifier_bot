@@ -2,7 +2,6 @@
 
 from fake_useragent import FakeUserAgent
 
-
 DEFAULT_TIMEOUT = 3
 
 

@@ -1,7 +1,9 @@
 """ Contains classes that allow download main product image """
+from functools import cached_property
 
 from aiohttp import ClientSession, ClientTimeout
 
+from logger import loguru_logger
 from utils.response import DEFAULT_TIMEOUT, get_fake_headers
 from utils.transform_types import from_bytes_to_b64
 from utils.types import b64
@@ -22,7 +24,7 @@ class WbImgDownloader:
         self.__vol: int = product_id // 10**5
         self.__part: int = product_id // 10**3
 
-    @property
+    @cached_property
     def __img_url_host(self) -> str:
         if 0 <= self.__vol <= 143:
             return "//basket-01.wbbasket.ru"
@@ -49,7 +51,7 @@ class WbImgDownloader:
         else:
             return "//basket-12.wbbasket.ru"
 
-    @property
+    @cached_property
     def img_url(self) -> str:
         return self.RAW_IMG_URL.format(
             self.__img_url_host,
@@ -61,8 +63,9 @@ class WbImgDownloader:
         )
 
     async def download(self) -> b64:
+        loguru_logger.info(f'request ("{self.img_url}") to download img'
+                           f' by product = {self.product_id}.')
         async with ClientSession(timeout=ClientTimeout(total=DEFAULT_TIMEOUT), headers=get_fake_headers()) as session:
-            print(self.img_url)
             async with session.get(self.img_url) as response:
                 downloaded_img: bytes = await response.read()
                 return from_bytes_to_b64(downloaded_img)
@@ -71,9 +74,3 @@ class WbImgDownloader:
 class WbImgsDownloader(list[WbImgDownloader]):
     def __init__(self, product_ids: list[int]):
         super().__init__([WbImgDownloader(pid) for pid in product_ids])
-
-
-if __name__ == '__main__':
-    from asyncio import run
-    # img = WbImgDownloader(25904739)
-    # run(img.download())

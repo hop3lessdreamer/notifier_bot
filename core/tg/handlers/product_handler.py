@@ -12,8 +12,7 @@ from core.tg.keyboards import ProductKeyboard, RowKeyboard
 from core.tg.message_texts import Messages as Msg
 from core.tg.notifier_state import NotifierState
 from core.tg.storage import Context
-from core.wb import WbParser
-from core.wb.wb_parser import WbProduct
+from core.wb.wb_parser import WbParser, WbProduct
 from db.queries import Subscription
 from schemas.product import Product
 from utils.validators import validate_product_id

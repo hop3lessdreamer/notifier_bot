@@ -1,4 +1,4 @@
-from core import WbProduct, WbParser
+from core.wb.wb_parser import WbParser, WbProduct
 from db.queries import DBQueries, Subscription
 
 

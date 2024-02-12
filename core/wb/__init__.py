@@ -1,7 +1,5 @@
 """ Init wb package """
 
-from core.wb.wb_parser import WbParser
-
 
 def form_url_from_product_id(product_id: int | str) -> str:
     if not product_id:
