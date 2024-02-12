@@ -10,6 +10,7 @@ from core.tg.handlers import HANDLERS
 from core.tg.storage import Storage
 from db import Database
 from db.queries import DBQueries
+from logger import loguru_logger
 
 
 class TGDispatcher(Dispatcher):
@@ -45,6 +46,7 @@ class BotDispatcher:
 
     def start_polling(self) -> None:
         """"""
+        loguru_logger.info('start bot')
         self.dp.loop.create_task(self.register_handlers())
         self.dp.loop.create_task(self.__check_product_prices_task())
 

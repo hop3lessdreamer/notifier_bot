@@ -11,6 +11,7 @@ from core.tg.message_texts import Messages as Msg
 from core.tg.notifier_state import NotifierState
 from core.tg.storage import Context
 from db.queries import Subscription, SubscriptionsInfo
+from logger import loguru_logger
 
 
 class ShowSubscriptionsHandlers(BaseHandler):
@@ -45,14 +46,13 @@ class ShowSubscriptionsHandlers(BaseHandler):
 
         await call.answer()
 
-    async def open_product_card(self, _call: CallbackQuery, _state: Context) -> None:
-        pass
+    async def open_product_card(self, _call: CallbackQuery, _state: Context) -> None: ...
 
     async def delete_subscribe(self, call: CallbackQuery, state: Context) -> None:
         subs_info: SubscriptionsInfo = await state.storage.get_subs_info(state.user, state.chat)
         if subs_info.empty or not subs_info.sub_by_cur_pos:
             await call.message.answer(Msg.subscriptions_not_found(), reply_markup=MenuKeyboard())
-            #   TODO: WARNING нет подписок для удаления
+            loguru_logger.error('Не удалось получить подписки из state.storage!')
             return
 
         await self.db.delete_subscription(
@@ -86,7 +86,7 @@ class ShowSubscriptionsHandlers(BaseHandler):
     async def change_threshold(call: CallbackQuery, state: Context) -> None:
         subs_info: SubscriptionsInfo = await state.storage.get_subs_info(state.user, state.chat)
         if subs_info.empty or not subs_info.sub_by_cur_pos:
-            #   TODO: WARNING не удалось найти подписку
+            loguru_logger.error('Не удалось получить подписки из state.storage!')
             return
 
         if subs_info.sub_by_cur_pos.product.price \
@@ -116,15 +116,12 @@ class ShowSubscriptionsHandlers(BaseHandler):
 
     @staticmethod
     async def prev_product_card(call: CallbackQuery, state: Context) -> None:
-        # import pydevd_pycharm
-        # pydevd_pycharm.settrace('localhost', port=5555, stdoutToServer=True, stderrToServer=True)
         subs_info: SubscriptionsInfo = await state.storage.get_subs_info(state.user, state.chat)
         if subs_info.empty or not subs_info.sub_by_cur_pos or subs_info.current_position == 0:
-            #   TODO: WARNING не удалось найти подписку
+            loguru_logger.error('Не удалось получить подписки из state.storage!')
             return
 
         subs_info.go_to_prev_pos()
-        print(subs_info.subscriptions)
 
         with transferring_file(subs_info.sub_by_cur_pos.product.img) as photo:
             await call.message.edit_media(
@@ -141,11 +138,9 @@ class ShowSubscriptionsHandlers(BaseHandler):
         await state.storage.write_subs(state.user, state.chat, subs_info)
 
     async def next_product_card(self, call: CallbackQuery, state: Context) -> None:
-        # import pydevd_pycharm
-        # pydevd_pycharm.settrace('localhost', port=5555, stdoutToServer=True, stderrToServer=True)
         subs_info: SubscriptionsInfo = await state.storage.get_subs_info(state.user, state.chat)
         if subs_info.empty or not subs_info.sub_by_cur_pos:
-            #   TODO: WARNING не удалось найти подписку
+            loguru_logger.error('Не удалось получить подписки из state.storage!')
             return
 
         await subs_info.go_to_next_pos(user_id=state.user, db_connection=self.db)

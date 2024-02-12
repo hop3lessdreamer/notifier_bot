@@ -16,6 +16,7 @@ from core.wb.wb_parser import WbParser, WbProduct
 from db.queries import Subscription
 from schemas.product import Product
 from utils.validators import validate_product_id
+from logger import loguru_logger
 
 
 class ProductHandler(BaseHandler):
@@ -42,6 +43,7 @@ class ProductHandler(BaseHandler):
 
         product_id: int | None = validate_product_id(message.text)
         if product_id is None:
+            loguru_logger.warning(f'Некорректный ввод товара ({message.text})!')
             await message.answer(Msg.INVALID_PRINTED_PRODUCT)
             return
 

@@ -101,11 +101,10 @@ class SubscriptionsInfo:
         return deleted_sub
 
     def go_to_prev_pos(self) -> None:
-        #   Стоим в начале?
+        #   beginning?
         if self.current_position == 0:
             if self.subs_length < self.subs_cnt_by_user:
-                print('Нужны еще данные!')
-                #   TODO: Подгрузим еще данные
+                #   TODO: Подгрузим еще данные, если будет доступна зацикленная навигация
                 pass
             else:
                 self.current_position = self.subs_length - 1
@@ -115,7 +114,7 @@ class SubscriptionsInfo:
         self.clear_cache()
 
     async def go_to_next_pos(self, user_id: int, db_connection: 'DBQueries') -> None:
-        #   Стоим в конце
+        #   beginning?
         if self.current_position == (self.subs_length - 1):
             if self.subs_length < self.subs_cnt_by_user:
                 read_subs: SubscriptionsInfo = await db_connection.get_subscriptions_by_user(
@@ -124,12 +123,7 @@ class SubscriptionsInfo:
                 )
                 self.subscriptions.extend(read_subs.subscriptions)
                 self.current_position += 1
-                print()
-                print('Нужны еще данные!')
-                print()
-                #   TODO: Подгрузим еще данные
-                pass
-            #   Встаем в начало
+            #   fix position to beginning
             else:
                 self.current_position = 0
         else:
