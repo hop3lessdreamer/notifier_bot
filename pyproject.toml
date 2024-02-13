@@ -77,6 +77,7 @@ ruff = "^0.1.14"
 ruff-lsp = "^0.0.50"
 mypy = "^1.8.0"
 pydevd-pycharm = ">=233.13135.95,<233.13136.0"
+pre-commit = "^3.6.1"
 
 
 [build-system]
