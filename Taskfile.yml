@@ -1,0 +1,19 @@
+version: '3'
+
+tasks:
+  reqs:
+    cmds:
+      - poetry install
+
+  build:
+    cmds:
+      - docker compose up -d --build
+
+  check:
+    cmds:
+      - pre-commit run --show-diff-on-failure --color=always --all-files
+
+  update:
+    cmds:
+      - poetry update
+      - pre-commit autoupdate
