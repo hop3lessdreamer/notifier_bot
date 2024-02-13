@@ -9,7 +9,9 @@ AVAILABLE_MARKET_PLACES = (
 AVAILABLE_ACTIONS = (
     InlineKeyboardButton(text='Перевыбрать маркетплейс', callback_data='choose_marketplace'),
     InlineKeyboardButton(text='Следить за товаром', callback_data='ask_product_id'),
-    InlineKeyboardButton(text='Посмотреть отслеживаемые товары', callback_data='show_subscriptions'),
+    InlineKeyboardButton(
+        text='Посмотреть отслеживаемые товары', callback_data='show_subscriptions'
+    ),
     InlineKeyboardButton(text='Удалить отслеживаемый товар', callback_data='delete_subscribe')
 )
 
