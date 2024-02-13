@@ -1,6 +1,5 @@
 from decimal import Decimal
 
-from aiogram.dispatcher import FSMContext
 from aiogram.types import CallbackQuery, Message
 
 from core.tg.files import transferring_file

@@ -1,4 +1,3 @@
-from aiogram.dispatcher import FSMContext
 from aiogram.types import CallbackQuery, InlineKeyboardMarkup, Message
 
 from core.tg.buttons import (
@@ -28,7 +27,7 @@ class ProductHandler(BaseHandler):
         )
 
     @staticmethod
-    async def ask_product_id(call: CallbackQuery, state: FSMContext) -> None:
+    async def ask_product_id(call: CallbackQuery, state: Context) -> None:
         """"""
         keyboard = InlineKeyboardMarkup()
         keyboard.add(MENU_BTN)

@@ -1,6 +1,4 @@
-""""""
-
-from aiogram.types import Message, InlineKeyboardMarkup
+from aiogram.types import InlineKeyboardMarkup, Message
 
 from core.tg.buttons import AVAILABLE_MARKET_PLACES
 from core.tg.handlers.base_handler import BaseHandler
@@ -8,12 +6,10 @@ from core.tg.message_texts import Messages as Msg
 
 
 class StartHandler(BaseHandler):
-    def register_handlers(self):
+    def register_handlers(self) -> None:
         self.dp.register_message_handler(self.start_message, commands='start')
 
-    async def start_message(self, message: Message):
-        """"""
-
+    async def start_message(self, message: Message) -> None:
         await message.answer(Msg.HELLO)
 
         user_id: int = message.from_user.id

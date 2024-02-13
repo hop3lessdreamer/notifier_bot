@@ -44,11 +44,7 @@ class WbProduct:
         if brand or name:
             title = f'{brand}/{name}'
 
-        return cls(
-            data.get('id'),
-            title,
-            price
-        )
+        return cls(data.get('id'), title, price)
 
 
 class WbParser:
@@ -73,12 +69,12 @@ class WbParser:
     @loguru_logger.catch(BaseException)
     async def request_products_info(self) -> dict[str, Any]:
         """ Returns product info """
-        loguru_logger.info(f'request ("{self.url}")'
-                           f' for products info ({self.product_ids})')
-        raise BaseException('123')
-        async with ClientSession(timeout=ClientTimeout(total=DEFAULT_TIMEOUT), headers=get_fake_headers()) as session:
-            async with session.get(self.url) as response:
-                return await response.json()
+        loguru_logger.info(f'request ("{self.url}") for products info ({self.product_ids})')
+        async with ClientSession(
+                timeout=ClientTimeout(total=DEFAULT_TIMEOUT),
+                headers=get_fake_headers()
+        ) as session, session.get(self.url) as response:
+            return await response.json()
 
     @async_cached_property
     async def prepared_products_info(self) -> list[dict[str, Any]] | None:
@@ -91,7 +87,8 @@ class WbParser:
 
         products_info: list[dict[str, Any]] = data.get('products', [])
         if not products_info:
-            loguru_logger.error('Не удалось получить данные о товарах! (Возможно изменился ответ запроса)')
+            loguru_logger.error('Не удалось получить данные о товарах! '
+                                '(Возможно изменился ответ запроса)')
             return None
 
         return products_info

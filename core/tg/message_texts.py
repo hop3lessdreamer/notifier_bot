@@ -1,4 +1,5 @@
 """ Message texts for bot """
+
 from _decimal import Decimal
 from aiogram.utils import markdown as fmt
 

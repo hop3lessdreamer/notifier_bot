@@ -62,13 +62,16 @@ class WbImgDownloader:
             self.DEFAULT_IMG_NUMBER
         )
 
+    @loguru_logger.catch(BaseException)
     async def download(self) -> b64:
         loguru_logger.info(f'request ("{self.img_url}") to download img'
                            f' by product = {self.product_id}.')
-        async with ClientSession(timeout=ClientTimeout(total=DEFAULT_TIMEOUT), headers=get_fake_headers()) as session:
-            async with session.get(self.img_url) as response:
-                downloaded_img: bytes = await response.read()
-                return from_bytes_to_b64(downloaded_img)
+        async with ClientSession(
+                timeout=ClientTimeout(total=DEFAULT_TIMEOUT),
+                headers=get_fake_headers()
+        ) as session, session.get(self.img_url) as response:
+            downloaded_img: bytes = await response.read()
+            return from_bytes_to_b64(downloaded_img)
 
 
 class WbImgsDownloader(list[WbImgDownloader]):

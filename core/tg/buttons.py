@@ -21,7 +21,10 @@ AVAILABLE_ACTIONS_W_EMPTY_SUBS = (
 ACTIONS_WITH_PRODUCT: tuple[InlineKeyboardButton, ...] = (
     InlineKeyboardButton(text='Уведомить при любом снижении цены', callback_data='wo_threshold'),
     InlineKeyboardButton(text='Установить цену для уведомления', callback_data='set_threshold'),
-    InlineKeyboardButton(text='Установить цену для уведомления в процентах', callback_data='set_threshold_in_percents'),
+    InlineKeyboardButton(
+        text='Установить цену для уведомления в процентах',
+        callback_data='set_threshold_in_percents'
+    ),
 )
 
 ACTIONS_WITH_SUBSCRIPTIONS_WO_NAV: list[tuple[InlineKeyboardButton, ...]] = [

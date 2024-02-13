@@ -1,3 +1,4 @@
+from collections.abc import Iterator
 from contextlib import contextmanager
 from io import BytesIO
 
@@ -8,7 +9,8 @@ from utils.types import b64
 
 
 @contextmanager
-def transferring_file(data: b64, file_name: str = 'default', file_ext: str = 'jpg') -> BytesIO:
+def transferring_file(data: b64, file_name: str = 'default', file_ext: str = 'jpg') \
+        -> Iterator[BytesIO]:
     bytes_io = BytesIO()
     try:
         bytes_io.write(from_b64_to_bytes(data))

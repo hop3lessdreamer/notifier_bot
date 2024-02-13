@@ -1,4 +1,4 @@
-from aiogram.dispatcher import FSMContext
+
 from aiogram.types import CallbackQuery, InlineKeyboardMarkup, Message
 
 from core.tg.buttons import MENU_BTN
@@ -6,6 +6,7 @@ from core.tg.files import transferring_file
 from core.tg.handlers.base_handler import BaseHandler
 from core.tg.message_texts import Messages as Msg
 from core.tg.notifier_state import NotifierState
+from core.tg.storage import Context
 from db.queries import Subscription
 from logger import loguru_logger
 from utils.validators import validate_product_id
@@ -20,7 +21,7 @@ class DeleteSubscriptionHandlers(BaseHandler):
         )
 
     @staticmethod
-    async def delete_subscribe(call: CallbackQuery, state: FSMContext) -> None:
+    async def delete_subscribe(call: CallbackQuery, state: Context) -> None:
         keyboard = InlineKeyboardMarkup()
         keyboard.add(MENU_BTN)
 
@@ -29,7 +30,7 @@ class DeleteSubscriptionHandlers(BaseHandler):
         await call.message.answer(Msg.PRINT_PRODUCT, reply_markup=keyboard)
         await call.answer()
 
-    async def delete_subscribe_for(self, message: Message, state: FSMContext) -> None:
+    async def delete_subscribe_for(self, message: Message, state: Context) -> None:
 
         product_id: int | None = validate_product_id(message.text)
         if product_id is None:

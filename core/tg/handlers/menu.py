@@ -3,12 +3,12 @@ from aiogram.types import CallbackQuery, Message
 
 from core.tg.handlers import BaseHandler
 from core.tg.keyboards import MenuKeyboard, MenuKeyboardWEmptySubs
-from core.tg.notifier_state import NotifierState
 from core.tg.message_texts import Messages as Msg
+from core.tg.notifier_state import NotifierState
 
 
 class PickMenu(BaseHandler):
-    def register_handlers(self):
+    def register_handlers(self) -> None:
         self.dp.register_callback_query_handler(
             self.menu,
             text='menu',
@@ -30,11 +30,11 @@ class PickMenu(BaseHandler):
         )
 
     @staticmethod
-    async def menu(call: CallbackQuery, state: FSMContext):
+    async def menu(call: CallbackQuery, state: FSMContext) -> None:
         await call.message.edit_reply_markup(reply_markup=MenuKeyboard())
         await state.finish()
 
-    async def menu_command(self, message: Message, state: FSMContext):
+    async def menu_command(self, message: Message, state: FSMContext) -> None:
         subs_cnt: int = await self.db.get_cnt_subscription_by_user(state.user)
         if not subs_cnt:
             await message.answer(Msg.CHOSE_ACTION, reply_markup=MenuKeyboardWEmptySubs())
@@ -43,6 +43,6 @@ class PickMenu(BaseHandler):
         await message.answer(Msg.CHOSE_ACTION, reply_markup=MenuKeyboard())
 
     @staticmethod
-    async def menu_from_choosing_product(call: CallbackQuery, state: FSMContext):
+    async def menu_from_choosing_product(call: CallbackQuery, state: FSMContext) -> None:
         await call.message.edit_text(Msg.CHOSE_ACTION, reply_markup=MenuKeyboard())
         await state.finish()
