@@ -8,10 +8,10 @@ from utils import Encoder, JSONEncoder
 from utils.types import b64
 
 
-def get_int(value: str | int, default: int | None = None) -> int | None:
-    """ Return int value or default """
+def get_int(value: str | int | None, default: int | None = None) -> int | None:
+    """Return int value or default"""
     try:
-        return int(value)
+        return int(value)  # type: ignore
     except (ValueError, TypeError):
         return default
 
@@ -19,7 +19,7 @@ def get_int(value: str | int, default: int | None = None) -> int | None:
 def from_json_to_dict(value: str, default: dict | None = None) -> dict | None:
     if not value:
         return default
-    return loads(value)
+    return loads(value)  # type: ignore
 
 
 def from_dict_to_json(value: dict, default: str = '', encoder: type[JSONEncoder] = Encoder) -> str:
@@ -28,10 +28,10 @@ def from_dict_to_json(value: dict, default: str = '', encoder: type[JSONEncoder]
     return dumps(value, cls=encoder)
 
 
-def from_bytes_to_b64(data: bytes, default: b64 = b'') -> b64:
+def from_bytes_to_b64(data: bytes, default: b64 = b'') -> b64:  # type: ignore
     if not data:
         return default
-    return b64encode(data)
+    return b64encode(data)  # type: ignore
 
 
 def from_b64_to_bytes(data: b64, default: bytes = b'') -> bytes:
@@ -41,14 +41,12 @@ def from_b64_to_bytes(data: b64, default: bytes = b'') -> bytes:
 
 
 def get_decimal(
-        value: str | int | float | Decimal,
-        precision: int | None = None,
-        default: Decimal | None = None
+    value: str | int | float | Decimal, precision: int | None = None, default: Decimal | None = None
 ) -> Decimal | None:
     try:
         decimal_value = Decimal(value)
         if precision:
-            decimal_value = decimal_value.quantize(Decimal(str(1/(10*precision))))
+            decimal_value = decimal_value.quantize(Decimal(str(1 / (10 * precision))))
         return decimal_value
     except BaseException:
         return default
