@@ -37,7 +37,7 @@ class BotDispatcher:
 
         while True:
             await sleep(bot_config.PRICE_CHECKS_FREQUENCY)
-            print("CHECK PRICES")
+            print('CHECK PRICES')
 
     async def register_handlers(self) -> None:
         for handler in HANDLERS:
