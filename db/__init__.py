@@ -25,7 +25,7 @@ class Database(ABC):
 
     async def __call__(self) -> AsyncSession:
         if not self.async_sessionmaker:
-            raise ValueError("async_sessionmaker not available. Run setup() first.")
+            raise ValueError('async_sessionmaker not available. Run setup() first.')
 
         # async with self.async_sessionmaker() as session:
         #     async with session.begin():

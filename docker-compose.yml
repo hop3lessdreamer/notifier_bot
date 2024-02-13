@@ -22,7 +22,7 @@ services:
       - ".:/bot"
     network_mode: host
     command:
-      /bin/sh -c "poetry run alembic upgrade head 
+      /bin/sh -c "poetry run alembic upgrade head
       && poetry run python main.py"
     depends_on:
       - db

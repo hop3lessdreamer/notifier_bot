@@ -100,5 +100,3 @@ class ProductHandler(BaseHandler):
             await state.storage.write_wb_product(state.user, state.chat, wb_product)
             await state.set_state(NotifierState.waiting_action_w_product_for_exist.state)
             return
-
-

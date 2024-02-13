@@ -23,4 +23,3 @@ def validate_product_id(message: str) -> int | None:
         product_id: int | None = matching.group(4)
 
     return get_int(product_id)
-

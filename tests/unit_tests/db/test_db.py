@@ -101,7 +101,7 @@ class TestProducts:
 
 class TestUserProducts:
     @pytest.mark.asyncio
-    @pytest.mark.parametrize('user_products', [pytest.param(False, id="w/o_db_write")], indirect=True)
+    @pytest.mark.parametrize('user_products', [pytest.param(False, id='w/o_db_write')], indirect=True)
     async def test_add_subscription(self, user_products):
         with db.session() as session:
             user_product, product = user_products[0]
@@ -119,7 +119,7 @@ class TestUserProducts:
 
             assert added_sub.price_threshold == decimal.Decimal(900), 'incorrect user_products count in db!'
 
-    @pytest.mark.parametrize('user_products', [pytest.param(False, id="with_db_write")], indirect=True)
+    @pytest.mark.parametrize('user_products', [pytest.param(False, id='with_db_write')], indirect=True)
     @pytest.mark.asyncio
     async def test_delete_subscription_that_exist(self, user_products):
         with db.session() as session:
@@ -144,7 +144,7 @@ class TestUserProducts:
             assert deleted_sub.user_product.product_id == user_product.product_id
 
     @pytest.mark.asyncio
-    @pytest.mark.parametrize('user_products', [pytest.param(True, id="with_db_write")], indirect=['user_products'])
+    @pytest.mark.parametrize('user_products', [pytest.param(True, id='with_db_write')], indirect=['user_products'])
     async def test_change_subscription_threshold(self, user_products):
         user_product, product = user_products[1]
         sub = await DBQueries(db).change_subscription_threshold(
@@ -154,7 +154,7 @@ class TestUserProducts:
         assert sub.user_product.price_threshold == decimal.Decimal(1999)
 
     @pytest.mark.asyncio
-    @pytest.mark.parametrize('user_products', [pytest.param(True, id="with_db_write")], indirect=['user_products'])
+    @pytest.mark.parametrize('user_products', [pytest.param(True, id='with_db_write')], indirect=['user_products'])
     async def test_get_cnt_subscription_by_user(self, user_products):
         user_product, product = user_products[0]
         cnt = await DBQueries(db).get_cnt_subscription_by_user(user_id=user_product.user_id)
@@ -162,7 +162,7 @@ class TestUserProducts:
         assert cnt == 3, 'incorrect subs cnt by user'
 
     @pytest.mark.asyncio
-    @pytest.mark.parametrize('user_products', [pytest.param(True, id="with_db_write")], indirect=['user_products'])
+    @pytest.mark.parametrize('user_products', [pytest.param(True, id='with_db_write')], indirect=['user_products'])
     async def test_get_subscriptions_by_user(self, user_products):
         user_product, product = user_products[0]
         subs_info: SubscriptionsInfo = await DBQueries(db).get_subscriptions_by_user(
@@ -183,7 +183,7 @@ class TestUserProducts:
             pass
 
     @pytest.mark.asyncio
-    @pytest.mark.parametrize('user_products', [pytest.param(True, id="with_db_write")], indirect=['user_products'])
+    @pytest.mark.parametrize('user_products', [pytest.param(True, id='with_db_write')], indirect=['user_products'])
     async def test_get_all_subscriptions(self, user_products):
         subs: list[Subscription] = await DBQueries(db).get_all_subscriptions()
 
