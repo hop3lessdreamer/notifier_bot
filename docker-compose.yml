@@ -17,7 +17,7 @@ services:
     environment:
       - DB_NAME=notifier_tgbot.db
       - DB_PATH=/bot/
-      - BOT_TOKEN=5857022841:AAFXwiSE8Ed7PjYzDW0KAGfxDaRtVu0Sn8A
+      - BOT_TOKEN=
     volumes:
       - ".:/bot"
     network_mode: host
