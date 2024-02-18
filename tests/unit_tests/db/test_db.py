@@ -177,7 +177,7 @@ class TestUserProducts:
         assert subs_info.first_sub.user_product.price_threshold == Decimal(2900)
 
     @pytest.mark.asyncio
-    async def test_get_subscription_by_user_n_product(self, user_products):
+    async def test_get_subscription_by_user_n_product(self):
         with db.session() as session:
             #   TODO
             pass

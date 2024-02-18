@@ -12,7 +12,7 @@ from utils.transform_types import get_decimal
 class UserProduct(BaseModel):
     user_id: PositiveInt = Field(alias='UserID')
     product_id: PositiveInt = Field(alias='ProductID')
-    price_threshold: Decimal | None = Field(alias='PriceThreshold')
+    price_threshold: Decimal = Field(alias='PriceThreshold')
     added: datetime = Field(alias='Added')
     changed: datetime | None = Field(alias='Changed')
 
@@ -20,5 +20,5 @@ class UserProduct(BaseModel):
 
     @field_validator('price_threshold', mode='after')
     @classmethod
-    def set_precision_to_price(cls, price_threshold: Decimal | None) -> Decimal | None:
+    def set_precision_to_price(cls, price_threshold: Decimal) -> Decimal | None:
         return get_decimal(price_threshold, 2)

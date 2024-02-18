@@ -1,30 +1,68 @@
+from collections import defaultdict
+from decimal import Decimal
+
+from aiogram import Dispatcher
+
 from core.wb.wb_parser import WbParser, WbProduct
 from db.queries import DBQueries, Subscription
+from logger import loguru_logger
+from schemas.product import Product
+from utils.transform_types import get_decimal
+from utils.types import ProductID, UserID
 
 
-async def check_product_prices(db: DBQueries):
-    """ Handler that collects all products and then checks prices for changes """
+async def check_product_prices(db: DBQueries, _dp: Dispatcher) -> None:
+    """Handler that collects all products and then checks prices for changes"""
+
+    loguru_logger.info('\n>>> checking product prices!\n')
 
     subs: list[Subscription] = await db.get_all_subscriptions()
-    products_ids: list[int] = [sub.product.id for sub in subs]
-    old_wb_products: dict[int, WbProduct] = {
-        sub.product.id: WbProduct(
-            sub.product.id,
-            sub.product.title,
-            sub.product.price
-        )
-        for sub in subs
-    }
-    new_wb_products: dict[int, WbProduct] = await WbParser(products_ids).get_wb_products()
+    old_products_by_pid: dict[ProductID, Product] = {}
+    subs_by_pid: dict[ProductID, list[Subscription]] = defaultdict(list)
+    sub_by_user: dict[UserID, list[Subscription]] = defaultdict(list)
+    for sub in subs:
+        old_products_by_pid[sub.product.id] = sub.product
+        sub_by_user[sub.user_product.user_id].append(sub)
+        subs_by_pid[sub.product.id].append(sub)
 
-    changing_prices: dict[int, float] = {}
+    new_wb_products: dict[ProductID, WbProduct] = await WbParser(
+        list(old_products_by_pid.keys())
+    ).get_wb_products()
+
+    changing_prices: dict[ProductID, Decimal] = {}
     for pid, new_product in new_wb_products.items():
-        old_product: WbProduct = old_wb_products.get(pid)
+        old_product: Product | None = old_products_by_pid.get(pid)
+
+        if old_product is None:
+            loguru_logger.error('new product from response was not found in db!')
+            continue
         if old_product.price != new_product.price:
-            changing_prices[pid] = new_product.price
+            new_price: Decimal | None = get_decimal(new_product.price, 2)
+            if new_price is None:
+                raise ValueError('Ошибка валидации цены на товар!')
+            changing_prices[pid] = new_price
 
     if not changing_prices:
         return
 
-    for pid, changing_price in changing_prices.items():
-        pass
+    send_notifications: dict[UserID, list[Product]] = defaultdict(list)
+    for pid, new_price in changing_prices.items():
+        subs_w_changing_price: list[Subscription] | None = subs_by_pid.get(pid)
+        if subs_w_changing_price is None:
+            loguru_logger.error('new product from response was not found in db!')
+            continue
+        for sub in subs_w_changing_price:
+            new_price = get_decimal(new_price, 2)
+            if new_price is None:
+                raise ValueError('Ошибка валидации цены на товар!')
+            if new_price < sub.user_product.price_threshold:
+                sub.product.price = new_price
+                send_notifications[sub.user_product.user_id].append(sub.product)
+
+    loguru_logger.info(f'products that changed prices:\n{str(changing_prices)}')
+    await db.change_products_prices(changing_prices)
+
+    loguru_logger.info(f'users that will receive notification: {str(send_notifications.keys())}')
+    # for user_id, product in send_notifications.items():
+    #     pass
+    # dp.bot.send_message()

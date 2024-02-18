@@ -1,6 +1,16 @@
 version: "3"
 
 services:
+  nginx:
+    image: nginx:1.23-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    restart: always
+    user: root
+#    volumes:
+#      - "./nginx/default.conf:/etc/nginx/conf.d/default.conf"
+
   db:
     tty: true
     image: keinos/sqlite3:latest
@@ -17,7 +27,7 @@ services:
     environment:
       - DB_NAME=notifier_tgbot.db
       - DB_PATH=/bot/
-      - BOT_TOKEN=
+      - BOT_TOKEN=5857022841:AAFXwiSE8Ed7PjYzDW0KAGfxDaRtVu0Sn8A
     volumes:
       - ".:/bot"
     network_mode: host
@@ -26,3 +36,4 @@ services:
       && poetry run python main.py"
     depends_on:
       - db
+      - nginx

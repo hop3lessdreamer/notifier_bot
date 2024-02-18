@@ -42,14 +42,15 @@ def users():
 @pytest.fixture
 def products():
     relative_path_to_imgs = '../../test_data/imgs/'
+    cwd: pathlib.Path = pathlib.Path(__file__).parent
 
-    with open(pathlib.Path(f'{pathlib.Path.cwd()}/{relative_path_to_imgs}1.png'), 'rb') as img:
+    with open(pathlib.Path(f'{cwd.absolute()}/{relative_path_to_imgs}1.png'), 'rb') as img:
         img_1: bytes = img.read()
 
-    with open(pathlib.Path(f'{pathlib.Path.cwd()}/{relative_path_to_imgs}/2.png'), 'rb') as img:
+    with open(pathlib.Path(f'{cwd.absolute()}/{relative_path_to_imgs}/2.png'), 'rb') as img:
         img_2: bytes = img.read()
 
-    with open(pathlib.Path(f'{pathlib.Path.cwd()}/{relative_path_to_imgs}/3.png'), 'rb') as img:
+    with open(pathlib.Path(f'{cwd.absolute()}/{relative_path_to_imgs}/3.png'), 'rb') as img:
         img_3: bytes = img.read()
 
     yield [

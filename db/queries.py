@@ -2,6 +2,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from decimal import Decimal
 from functools import cached_property
+from typing import cast
 
 from sqlalchemy import Result, Row, column, desc
 from sqlalchemy.sql.expression import Function, delete, exists, insert, select, update
@@ -21,24 +22,31 @@ from utils.transform_types import from_dict_to_json
 
 @dataclass
 class Subscription:
-    product: Product | None = None
-    user_product: UserProduct | None = None
+    product: Product
+    user_product: UserProduct
 
     @cached_property
     def empty(self) -> bool:
         return not (self.product and self.user_product)
 
     def __repr__(self) -> str:
-        return (
-            f'Product('
+        repr: str = ''
+        if self.product:
+            repr += (
+                f'Product('
                 f'ID={self.product.id},'
                 f' Price={self.product.price},'
-                f' Title={self.product.title})\n'
-            f'UserProduct('
+                f' Title={self.product.title}'
+                ')\n'
+            )
+        if self.user_product:
+            repr += (
+                f'UserProduct('
                 f'UserID={self.user_product.user_id},'
                 f' PriceThreshold={self.user_product.price_threshold}'
-            f')\n'
-        )
+                f')\n'
+            )
+        return repr
 
 
 @dataclass
@@ -72,28 +80,24 @@ class SubscriptionsInfo:
 
     @cached_property
     def wb_prod_from_sub_by_cur_pos(self) -> WbProduct:
-        if not self.sub_by_cur_pos:
+        if not self.sub_by_cur_pos or not self.sub_by_cur_pos.product:
             return WbProduct()
         return WbProduct(
             self.sub_by_cur_pos.product.id,
             self.sub_by_cur_pos.product.title,
-            float(self.sub_by_cur_pos.product.price)
+            float(self.sub_by_cur_pos.product.price),
         )
 
     def __pos__(self) -> None:
         self.current_position += 1
 
     def __repr__(self) -> str:
-        subs_repr: str = '\n'.join([
-            f'pos = {str(i)} >> {sub.__repr__()}'
-            for i, sub in enumerate(self.subscriptions)
-        ])
-        return f'SubscriptionInfo:\n'\
-               f'cur_pos = {self.current_position}\n'\
-               f'subs:\n{subs_repr}\n'
+        subs_repr: str = '\n'.join(
+            [f'pos = {str(i)} >> {sub.__repr__()}' for i, sub in enumerate(self.subscriptions)]
+        )
+        return f'SubscriptionInfo:\n' f'cur_pos = {self.current_position}\n' f'subs:\n{subs_repr}\n'
 
     def del_sub_by_cur_pos(self) -> Subscription:
-
         deleted_sub: Subscription = self.subscriptions.pop(self.current_position)
         self.subs_cnt_by_user -= 1
         self.clear_cache()
@@ -118,8 +122,7 @@ class SubscriptionsInfo:
         if self.current_position == (self.subs_length - 1):
             if self.subs_length < self.subs_cnt_by_user:
                 read_subs: SubscriptionsInfo = await db_connection.get_subscriptions_by_user(
-                    user_id=user_id,
-                    offset=self.subs_length
+                    user_id=user_id, offset=self.subs_length
                 )
                 self.subscriptions.extend(read_subs.subscriptions)
                 self.current_position += 1
@@ -149,97 +152,107 @@ class DBQueries:
 
     async def create_user(self, user_id: int, tz_offset: int = MOSCOW_TZ_OFFSET) -> User:
         async with await self.db() as session:
-            user: Result = await session.execute(select(UserModel).where(UserModel.ID == user_id))
+            user: Result = await session.execute(select(UserModel).where(user_id == UserModel.ID))
             user_mdl: UserModel = user.scalar()
             if not user_mdl:
                 user_result: Result = await session.execute(
                     insert(UserModel).values(ID=user_id, TZOffset=tz_offset).returning(UserModel)
                 )
                 await session.commit()
-                return User.model_validate(user_result.scalar())
+                return cast(User, User.model_validate(user_result.scalar()))
             await session.commit()
-        return User.model_validate(user_mdl)
+        return cast(User, User.model_validate(user_mdl))
 
-    async def create_product(self, product_id: int, price: Decimal, img: bytes, title: str)\
-            -> Product:
+    async def create_product(
+        self, product_id: int, price: Decimal, img: bytes, title: str
+    ) -> Product:
         async with await self.db() as session:
-            product_selection_res: Result = await session.execute(select(ProductModel)\
-                                                                  .where(ProductModel.ID == product_id))
+            product_selection_res: Result = await session.execute(
+                select(ProductModel).where(product_id == ProductModel.ID)
+            )
             product_mdl: ProductModel | None = product_selection_res.scalar()
             if not product_mdl:
-                product_selection_res: Result = await session.execute(
+                product_selection_res = await session.execute(
                     insert(ProductModel)
                     .values(ID=product_id, Price=price, Img=img, Title=title)
                     .returning(ProductModel)
                 )
                 await session.commit()
-                return Product.model_validate(product_selection_res.scalar())
+                return cast(Product, Product.model_validate(product_selection_res.scalar()))
 
             product: Product = Product.model_validate(product_mdl)
             if product.price != price:
-                product_selection_res: Result = await session.execute(
+                product_selection_res = await session.execute(
                     update(ProductModel)
-                    .where(ProductModel.ID == product_id,)
+                    .where(
+                        product_id == ProductModel.ID,
+                    )
                     .values(Price=price)
                     .returning(ProductModel)
                 )
                 await session.commit()
-                return Product.model_validate(product_selection_res.scalar())
+                return cast(Product, Product.model_validate(product_selection_res.scalar()))
 
             await session.commit()
         return product
 
-    async def add_subscription(self, user_id: int, product: Product, threshold: Decimal | None = None)\
-            -> UserProduct:
+    async def add_subscription(
+        self, user_id: int, product: Product, threshold: Decimal | None = None
+    ) -> UserProduct:
         async with await self.db() as session:
             product_exist: Result = await session.execute(
                 exists(ProductModel.ID)
-                .where(ProductModel.ID == product.id, ProductModel.Price == product.price)
+                .where(product.id == ProductModel.ID, product.price == ProductModel.Price)
                 .select()
             )
             if not product_exist.scalar():
                 await self.create_product(product.id, product.price, product.img, product.title)
 
             user_product_selection_res: Result = await session.execute(
-                select(UserProductModel)
-                .where(UserProductModel.UserID == user_id, UserProductModel.ProductID == product.id)
+                select(UserProductModel).where(
+                    user_id == UserProductModel.UserID, product.id == UserProductModel.ProductID
+                )
             )
             user_prd_mdl: UserProductModel | None = user_product_selection_res.scalar()
             if not user_prd_mdl:
-                user_product_selection_res: Result = await session.execute(
+                user_product_selection_res = await session.execute(
                     insert(UserProductModel)
-                    .values(UserID=user_id, ProductID=product.id, PriceThreshold=threshold, Added=datetime.utcnow())
+                    .values(
+                        UserID=user_id,
+                        ProductID=product.id,
+                        PriceThreshold=threshold,
+                        Added=datetime.utcnow(),
+                    )
                     .returning(UserProductModel)
                 )
                 await session.commit()
-                return UserProduct.model_validate(user_product_selection_res.scalar())
+                return cast(
+                    UserProduct, UserProduct.model_validate(user_product_selection_res.scalar())
+                )
 
             await session.commit()
-        return UserProduct.model_validate(user_prd_mdl)
+        return cast(UserProduct, UserProduct.model_validate(user_prd_mdl))
 
     async def delete_subscription(self, user_id: int, product_id: int) -> Subscription | None:
         async with await self.db() as session:
             sub_exist_res: Result = await session.execute(
-                select(UserProductModel)
-                .where(UserProductModel.UserID == user_id, UserProductModel.ProductID == product_id)
+                select(UserProductModel).where(
+                    user_id == UserProductModel.UserID, product_id == UserProductModel.ProductID
+                )
             )
             sub_exist: UserProductModel | None = sub_exist_res.scalar()
             if not sub_exist:
                 await session.commit()
                 return None
 
-            deleted_sub_result = await session.execute(
+            deleted_sub_result: Result = await session.execute(
                 delete(UserProductModel)
-                .where(
-                    UserProductModel.UserID == user_id,
-                    UserProductModel.ProductID == product_id
-                )
+                .where(user_id == UserProductModel.UserID, product_id == UserProductModel.ProductID)
                 .returning(UserProductModel)
             )
             deleted_sub: UserProduct = UserProduct.model_validate(deleted_sub_result.scalar())
             product_res: Result = await session.execute(
-                select(ProductModel)
-                .where(ProductModel.ID == deleted_sub.product_id)
+                select(ProductModel).where(deleted_sub.product_id == ProductModel.ID)
             )
             product_from_del_sub = Product.model_validate(product_res.scalar())
             await session.commit()
@@ -247,23 +260,19 @@ class DBQueries:
         return Subscription(product_from_del_sub, deleted_sub)
 
     async def change_subscription_threshold(
-            self, user_id: int, product_id: int, threshold: Decimal | None = None
+        self, user_id: int, product_id: int, threshold: Decimal | None = None
     ) -> Subscription:
         async with await self.db() as session:
             query_result: Result = await session.execute(
                 update(UserProductModel)
-                .where(
-                    UserProductModel.UserID == user_id,
-                    UserProductModel.ProductID == product_id
-                )
+                .where(user_id == UserProductModel.UserID, product_id == UserProductModel.ProductID)
                 .values(PriceThreshold=threshold, Changed=datetime.utcnow())
                 .returning(UserProductModel)
             )
             user_product: UserProduct = UserProduct.model_validate(query_result.scalar())
 
             product_res: Result = await session.execute(
-                select(ProductModel)
-                .where(ProductModel.ID == user_product.product_id)
+                select(ProductModel).where(user_product.product_id == ProductModel.ID)
             )
             await session.commit()
         return Subscription(Product.model_validate(product_res.scalar()), user_product)
@@ -271,18 +280,16 @@ class DBQueries:
     async def get_cnt_subscription_by_user(self, user_id: int) -> int:
         async with await self.db() as session:
             product_cnt: Result = await session.execute(
-                select(count()).select_from(UserProductModel)
-                .where(UserProductModel.UserID == user_id)
+                select(count())
+                .select_from(UserProductModel)
+                .where(user_id == UserProductModel.UserID)
             )
             await session.commit()
 
-        return product_cnt.scalar()
+        return cast(int, product_cnt.scalar())
 
     async def get_subscriptions_by_user(
-            self,
-            user_id: int,
-            limit: int = SUBS_READING_LIMIT_PER_QUERY,
-            offset: int = 0
+        self, user_id: int, limit: int = SUBS_READING_LIMIT_PER_QUERY, offset: int = 0
     ) -> SubscriptionsInfo:
         async with await self.db() as session:
             product_cnt: int = await self.get_cnt_subscription_by_user(user_id)
@@ -290,7 +297,7 @@ class DBQueries:
             selection_res: Result = await session.execute(
                 select(UserProductModel, ProductModel)
                 .join(ProductModel.users)
-                .where(UserProductModel.UserID == user_id)
+                .where(user_id == UserProductModel.UserID)
                 .order_by(desc(UserProductModel.Added))
                 .limit(limit)
                 .offset(offset)
@@ -300,35 +307,30 @@ class DBQueries:
             [
                 Subscription(
                     Product.model_validate(user_prod_mdl[1]),
-                    UserProduct.model_validate(user_prod_mdl[0])
+                    UserProduct.model_validate(user_prod_mdl[0]),
                 )
                 for user_prod_mdl in selection_res.all()
             ],
-            product_cnt
+            product_cnt,
         )
 
     async def get_subscription_by_user_n_product(
-            self,
-            user_id: int,
-            product_id: int
-    ) -> Subscription:
+        self, user_id: int, product_id: int
+    ) -> Subscription | None:
         async with await self.db() as session:
             query_result: Result = await session.execute(
                 select(ProductModel, UserProductModel)
                 .join(ProductModel.users)
-                .where(
-                    UserProductModel.UserID == user_id,
-                    UserProductModel.ProductID == product_id
-                )
+                .where(user_id == UserProductModel.UserID, product_id == UserProductModel.ProductID)
             )
             result_row: Row = query_result.first()
             await session.commit()
             if not result_row:
-                return Subscription()
+                return None
 
         return Subscription(
             product=Product.model_validate(result_row[0]),
-            user_product=UserProduct.model_validate(result_row[1])
+            user_product=UserProduct.model_validate(result_row[1]),
         )
 
     async def get_all_subscriptions(self) -> list[Subscription]:
@@ -340,22 +342,20 @@ class DBQueries:
             )
             await session.commit()
         return [
-            Subscription(
-                Product.model_validate(result[0]),
-                UserProduct.model_validate(result[1])
-            )
+            Subscription(Product.model_validate(result[0]), UserProduct.model_validate(result[1]))
             for result in query_result.all()
         ]
 
     async def change_products_prices(self, product_prices: dict[int, Decimal]) -> list[Product]:
         async with await self.db() as session:
-            subq_product_prices = \
-                select(column('key'), column('value')) \
-                .select_from(Function('json_each', from_dict_to_json(product_prices)).alias('t')) \
+            subq_product_prices = (
+                select(column('key'), column('value'))
+                .select_from(Function('json_each', from_dict_to_json(product_prices)).alias('t'))
                 .subquery('product_prices')
-            res = await self.db.execute(
+            )
+            res = await session.execute(
                 update(ProductModel)
-                .where(ProductModel.ID == subq_product_prices.c.key)
+                .where(subq_product_prices.c.key == ProductModel.ID)
                 .values(Price=subq_product_prices.c.value)
                 .returning(ProductModel)
             )

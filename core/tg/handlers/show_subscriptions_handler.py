@@ -24,7 +24,8 @@ class ShowSubscriptionsHandlers(BaseHandler):
         self.dp.register_callback_query_handler(self.next_product_card, text='next_product')
         self.dp.register_callback_query_handler(self.empty_callback, text='disabled')
 
-    async def empty_callback(self) -> None: ...
+    async def empty_callback(self) -> None:
+        ...
 
     async def show_subscriptions(self, call: CallbackQuery, state: Context) -> None:
         subscriptions_info: SubscriptionsInfo = await self.db.get_subscriptions_by_user(state.user)
@@ -34,19 +35,22 @@ class ShowSubscriptionsHandlers(BaseHandler):
         if subscriptions_info.empty:
             await call.message.answer(Msg.subscriptions_not_found(), reply_markup=MenuKeyboard())
         else:
-            with transferring_file(subscriptions_info.first_sub.product.img) as photo:
+            first_sub: Subscription | None = subscriptions_info.first_sub
+            if first_sub is None:
+                raise ValueError('Не удалось получить первую подписку!')
+            with transferring_file(first_sub.product.img) as photo:
                 await call.message.answer_photo(
                     photo=photo,
                     caption=Msg.subscription(subscriptions_info),
                     reply_markup=SubsNavigationKeyboard(
-                        subs=subscriptions_info,
-                        product_id=subscriptions_info.first_sub.product.id
-                    )
+                        subs=subscriptions_info, product_id=first_sub.product.id
+                    ),
                 )
 
         await call.answer()
 
-    async def open_product_card(self, _call: CallbackQuery, _state: Context) -> None: ...
+    async def open_product_card(self, _call: CallbackQuery, _state: Context) -> None:
+        ...
 
     async def delete_subscribe(self, call: CallbackQuery, state: Context) -> None:
         subs_info: SubscriptionsInfo = await state.storage.get_subs_info(state.user, state.chat)
@@ -57,30 +61,21 @@ class ShowSubscriptionsHandlers(BaseHandler):
 
         await self.db.delete_subscription(
             user_id=subs_info.sub_by_cur_pos.user_product.user_id,
-            product_id=subs_info.sub_by_cur_pos.product.id
+            product_id=subs_info.sub_by_cur_pos.product.id,
         )
 
         deleted_sub: Subscription = subs_info.del_sub_by_cur_pos()
 
-        if subs_info.empty:
-            await call.message.delete()
-            await call.message.answer(Msg.info_about_deletion(deleted_sub))
-            await call.message.answer(Msg.subscriptions_not_found_after_deletion())
-        else:
-            with transferring_file(subs_info.sub_by_cur_pos.product.img) as photo:
-                await call.message.edit_media(
-                    InputMediaPhoto(
-                        media=photo,
-                        caption=Msg.subscription(subs_info)
-                    ),
-                    reply_markup=SubsNavigationKeyboard(
-                        subs=subs_info,
-                        product_id=deleted_sub.product.id
-                    )
-                )
-            await call.message.answer(Msg.info_about_deletion(deleted_sub))
+        with transferring_file(subs_info.sub_by_cur_pos.product.img) as photo:
+            await call.message.edit_media(
+                InputMediaPhoto(media=photo, caption=Msg.subscription(subs_info)),
+                reply_markup=SubsNavigationKeyboard(
+                    subs=subs_info, product_id=deleted_sub.product.id
+                ),
+            )
+        await call.message.answer(Msg.info_about_deletion(deleted_sub))
 
-            await state.storage.write_subs(state.user, state.chat, subs_info)
+        await state.storage.write_subs(state.user, state.chat, subs_info)
 
     @staticmethod
     async def change_threshold(call: CallbackQuery, state: Context) -> None:
@@ -89,15 +84,17 @@ class ShowSubscriptionsHandlers(BaseHandler):
             loguru_logger.error('Не удалось получить подписки из state.storage!')
             return
 
-        if subs_info.sub_by_cur_pos.product.price \
-                != subs_info.sub_by_cur_pos.user_product.price_threshold:
+        if (
+            subs_info.sub_by_cur_pos.product.price
+            != subs_info.sub_by_cur_pos.user_product.price_threshold
+        ):
             await call.message.edit_caption(
                 caption=Msg.current_product_price_w_exist_subscription_w_thr(
                     subs_info.sub_by_cur_pos
                 ),
                 reply_markup=RowKeyboard(
-                    btns=ACTIONS_W_PRODUCT_IF_EXIST_SUBSCRIPTION_AND_CHOSEN_W_THR
-                )
+                    buttons=ACTIONS_W_PRODUCT_IF_EXIST_SUBSCRIPTION_AND_CHOSEN_W_THR
+                ),
             )
 
         else:
@@ -106,12 +103,13 @@ class ShowSubscriptionsHandlers(BaseHandler):
                     subs_info.sub_by_cur_pos
                 ),
                 reply_markup=RowKeyboard(
-                    btns=ACTIONS_W_PRODUCT_IF_EXIST_SUBSCRIPTION_AND_CHOSEN_WO_THR
-                )
+                    buttons=ACTIONS_W_PRODUCT_IF_EXIST_SUBSCRIPTION_AND_CHOSEN_WO_THR
+                ),
             )
 
-        await state.storage\
-            .write_wb_product(state.user, state.chat, subs_info.wb_prod_from_sub_by_cur_pos)
+        await state.storage.write_wb_product(
+            state.user, state.chat, subs_info.wb_prod_from_sub_by_cur_pos
+        )
         await state.set_state(NotifierState.waiting_action_w_product_for_exist.state)
 
     @staticmethod
@@ -125,14 +123,10 @@ class ShowSubscriptionsHandlers(BaseHandler):
 
         with transferring_file(subs_info.sub_by_cur_pos.product.img) as photo:
             await call.message.edit_media(
-                InputMediaPhoto(
-                    media=photo,
-                    caption=Msg.subscription(subs_info)
-                ),
+                InputMediaPhoto(media=photo, caption=Msg.subscription(subs_info)),
                 reply_markup=SubsNavigationKeyboard(
-                    subs=subs_info,
-                    product_id=subs_info.sub_by_cur_pos.product.id
-                )
+                    subs=subs_info, product_id=subs_info.sub_by_cur_pos.product.id
+                ),
             )
 
         await state.storage.write_subs(state.user, state.chat, subs_info)
@@ -147,14 +141,10 @@ class ShowSubscriptionsHandlers(BaseHandler):
 
         with transferring_file(subs_info.sub_by_cur_pos.product.img) as photo:
             await call.message.edit_media(
-                InputMediaPhoto(
-                    media=photo,
-                    caption=Msg.subscription(subs_info)
-                ),
+                InputMediaPhoto(media=photo, caption=Msg.subscription(subs_info)),
                 reply_markup=SubsNavigationKeyboard(
-                    subs=subs_info,
-                    product_id=subs_info.sub_by_cur_pos.product.id
-                )
+                    subs=subs_info, product_id=subs_info.sub_by_cur_pos.product.id
+                ),
             )
 
         await state.storage.write_subs(state.user, state.chat, subs_info)

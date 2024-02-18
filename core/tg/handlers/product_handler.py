@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from aiogram.types import CallbackQuery, InlineKeyboardMarkup, Message
 
 from core.tg.buttons import (
@@ -13,17 +15,17 @@ from core.tg.notifier_state import NotifierState
 from core.tg.storage import Context
 from core.wb.wb_parser import WbParser, WbProduct
 from db.queries import Subscription
-from schemas.product import Product
-from utils.validators import validate_product_id
 from logger import loguru_logger
+from schemas.product import Product
+from utils.transform_types import get_decimal
+from utils.validators import validate_product_id
 
 
 class ProductHandler(BaseHandler):
     def register_handlers(self) -> None:
         self.dp.register_callback_query_handler(self.ask_product_id, text='ask_product_id')
         self.dp.register_message_handler(
-            self.ask_action_with_product,
-            state=NotifierState.waiting_product_id.state
+            self.ask_action_with_product, state=NotifierState.waiting_product_id.state
         )
 
     @staticmethod
@@ -51,19 +53,22 @@ class ProductHandler(BaseHandler):
         if wb_product is None or wb_product.empty:
             raise Exception(f'Не удалось прочитать товар "{product_id}"!')
 
-        subscription: Subscription = await self.db.get_subscription_by_user_n_product(
-            user_id=message.from_user.id,
-            product_id=product_id
+        subscription: Subscription | None = await self.db.get_subscription_by_user_n_product(
+            user_id=message.from_user.id, product_id=product_id
         )
 
         #   Нет подсписки - добавим
         #   FIXME: Убрать костыль с созданием Product
-        if subscription.empty:
+        if subscription is None:
+            price: Decimal | None = get_decimal(wb_product.price, 2)
+            if price is None:
+                raise ValueError('Ошибка валидации цены на товар!')
+
             await message.answer(
                 text=Msg.current_product_price(
-                    Product(ID=wb_product.id, Price=wb_product.price, Img=b'', Title=wb_product.title)
+                    Product(ID=wb_product.id, Price=price, Img=b'', Title=wb_product.title)
                 ),
-                reply_markup=ProductKeyboard()
+                reply_markup=ProductKeyboard(),
             )
 
             await state.storage.write_wb_product(state.user, state.chat, wb_product)
@@ -77,24 +82,20 @@ class ProductHandler(BaseHandler):
                 with transferring_file(subscription.product.img) as photo:
                     await message.answer_photo(
                         photo=photo,
-                        caption=Msg.current_product_price_w_exist_subscription_w_thr(
-                            subscription
-                        ),
+                        caption=Msg.current_product_price_w_exist_subscription_w_thr(subscription),
                         reply_markup=RowKeyboard(
-                            btns=ACTIONS_W_PRODUCT_IF_EXIST_SUBSCRIPTION_AND_CHOSEN_W_THR
-                        )
+                            buttons=ACTIONS_W_PRODUCT_IF_EXIST_SUBSCRIPTION_AND_CHOSEN_W_THR
+                        ),
                     )
             #   Уведомление при любом снижении
             else:
                 with transferring_file(subscription.product.img) as photo:
                     await message.answer_photo(
                         photo=photo,
-                        caption=Msg.current_product_price_w_exist_subscription_wo_thr(
-                            subscription
-                        ),
+                        caption=Msg.current_product_price_w_exist_subscription_wo_thr(subscription),
                         reply_markup=RowKeyboard(
-                            btns=ACTIONS_W_PRODUCT_IF_EXIST_SUBSCRIPTION_AND_CHOSEN_WO_THR
-                        )
+                            buttons=ACTIONS_W_PRODUCT_IF_EXIST_SUBSCRIPTION_AND_CHOSEN_WO_THR
+                        ),
                     )
 
             await state.storage.write_wb_product(state.user, state.chat, wb_product)

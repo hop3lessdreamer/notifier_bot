@@ -1,5 +1,6 @@
 """ Contains classes that allow download main product image """
 from functools import cached_property
+from typing import Generic
 
 from aiohttp import ClientSession, ClientTimeout
 
@@ -9,10 +10,7 @@ from utils.transform_types import from_bytes_to_b64
 from utils.types import b64
 
 
-class WbImgDownloader:
-
-    __slots__ = ('product_id', '__vol', '__part')
-
+class WbImgDownloader(Generic[b64]):
     RAW_IMG_URL = 'https:{}/vol{}/part{}/{}/images/c{}/{}.jpg'
     DEFAULT_IMG_SIZE = '246x328'
     #   taking main product img
@@ -59,16 +57,16 @@ class WbImgDownloader:
             self.__part,
             self.product_id,
             self.DEFAULT_IMG_SIZE,
-            self.DEFAULT_IMG_NUMBER
+            self.DEFAULT_IMG_NUMBER,
         )
 
     @loguru_logger.catch(BaseException)
     async def download(self) -> b64:
-        loguru_logger.info(f'request ("{self.img_url}") to download img'
-                           f' by product = {self.product_id}.')
+        loguru_logger.info(
+            f'request ("{self.img_url}") to download img' f' by product = {self.product_id}.'
+        )
         async with ClientSession(
-                timeout=ClientTimeout(total=DEFAULT_TIMEOUT),
-                headers=get_fake_headers()
+            timeout=ClientTimeout(total=DEFAULT_TIMEOUT), headers=get_fake_headers()
         ) as session, session.get(self.img_url) as response:
             downloaded_img: bytes = await response.read()
             return from_bytes_to_b64(downloaded_img)

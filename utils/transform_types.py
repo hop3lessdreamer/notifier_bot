@@ -41,8 +41,12 @@ def from_b64_to_bytes(data: b64, default: bytes = b'') -> bytes:
 
 
 def get_decimal(
-    value: str | int | float | Decimal, precision: int | None = None, default: Decimal | None = None
+    value: str | int | float | Decimal | None,
+    precision: int | None = None,
+    default: Decimal | None = None,
 ) -> Decimal | None:
+    if value is None:
+        return default
     try:
         decimal_value = Decimal(value)
         if precision:
@@ -52,9 +56,9 @@ def get_decimal(
         return default
 
 
-def get_percents(value: int | float | str, default: float | None = None) -> float | None:
+def get_percents(value: int | float | str, default: Decimal | None = None) -> Decimal | None:
     percents: Decimal | None = get_decimal(value, 1)
     if not percents or percents >= 100:
         return default
 
-    return float(percents)
+    return get_decimal(1 - percents / 100)

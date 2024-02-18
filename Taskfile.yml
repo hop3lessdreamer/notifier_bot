@@ -9,6 +9,10 @@ tasks:
     cmds:
       - docker compose up -d --build
 
+  recreate:
+    cmds:
+      - docker compose up -d --force-recreate
+
   check:
     cmds:
       - pre-commit run --show-diff-on-failure --color=always --all-files

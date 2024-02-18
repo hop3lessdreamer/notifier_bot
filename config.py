@@ -15,7 +15,12 @@ class BotConfig(BaseSettings):
     API_TOKEN: str
     PRICE_CHECKS_FREQUENCY: int
 
-    #   when testing change to ".test.env"
+    WEBHOOK_HOST: str
+    WEBHOOK_PATH: str
+    WEBAPP_HOST: str
+    WEBAPP_PORT: str
+
+    #   TODO: when testing change to ".test.env"
     model_config = SettingsConfigDict(env_file='.test.env')
 
     @property
@@ -25,6 +30,10 @@ class BotConfig(BaseSettings):
     @property
     def db_url_sync(self) -> str:
         return f'sqlite:///{self.DB_PATH}/{self.DB_NAME}'
+
+    @property
+    def webhook_url(self) -> str:
+        return f'{self.WEBHOOK_HOST}{self.WEBHOOK_PATH}'
 
 
 bot_config = BotConfig()

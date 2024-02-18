@@ -16,7 +16,7 @@ class Product(BaseModel):
 
     @field_validator('price', mode='after')
     @classmethod
-    def set_precision_to_price(cls, price: Decimal) -> Decimal:
+    def set_precision_to_price(cls, price: Decimal) -> Decimal | None:
         return get_decimal(price, 2)
 
     model_config = ConfigDict(from_attributes=True)
