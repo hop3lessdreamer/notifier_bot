@@ -1,5 +1,5 @@
 """ Initiation logger """
-
+from pathlib import Path
 from typing import get_type_hints
 
 from loguru import logger as loguru_logger
@@ -8,13 +8,13 @@ from config import bot_config
 
 
 def create_logger() -> loguru_logger:
-    """ Create and return Logger """
+    """Create and return Logger"""
     loguru_logger.add(
-        bot_config.LOG_PATH,
+        bot_config.LOG_PATH or f'{Path.cwd()}/bot.log',
         level=bot_config.LOG_LEVEL,
         enqueue=True,
         diagnose=True,
-        rotation='10 MB'
+        rotation='10 MB',
     )
     return loguru_logger
 

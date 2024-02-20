@@ -24,7 +24,7 @@ class ShowSubscriptionsHandlers(BaseHandler):
         self.dp.register_callback_query_handler(self.next_product_card, text='next_product')
         self.dp.register_callback_query_handler(self.empty_callback, text='disabled')
 
-    async def empty_callback(self) -> None:
+    async def empty_callback(self, _call: CallbackQuery) -> None:
         ...
 
     async def show_subscriptions(self, call: CallbackQuery, state: Context) -> None:
