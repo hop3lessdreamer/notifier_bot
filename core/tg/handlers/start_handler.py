@@ -12,8 +12,7 @@ class StartHandler(BaseHandler):
     async def start_message(self, message: Message) -> None:
         await message.answer(Msg.HELLO)
 
-        user_id: int = message.from_user.id
-        await self.db.create_user(user_id)
+        await self.db.create_user(message.from_user.id, message.chat.id)
 
         keyboard = InlineKeyboardMarkup()
         keyboard.add(*AVAILABLE_MARKET_PLACES)

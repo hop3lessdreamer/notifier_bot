@@ -29,8 +29,8 @@ def setup_db():
 @pytest.fixture
 def users():
     yield [
-        User(ID=1, TZOffset=-180),
-        User(ID=2, TZOffset=0)
+        User(ID=1, ChatID=111111, TZOffset=-180),
+        User(ID=2, ChatID=222222, TZOffset=0)
     ]
 
     with db.session() as session:
@@ -83,7 +83,7 @@ def products():
 
 @pytest.fixture
 def user_products(request):
-    user = User(ID=1, TZOffset=-180)
+    user = User(ID=1, ChatID=111111, TZOffset=-180)
     data_set = [
         (
             UserProduct(
@@ -133,7 +133,7 @@ def user_products(request):
     ]
     if request.param:
         with db.session() as session:
-            session.execute(insert(UserModel).values(ID=user.id, TZOffset=user.tz_offset))
+            session.execute(insert(UserModel).values(ID=user.id, ChatID=user.chat_id, TZOffset=user.tz_offset))
             session.commit()
             for user_product, product in data_set:
                 session.execute(insert(ProductModel)

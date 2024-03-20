@@ -16,24 +16,37 @@ class TestUsers:
     @pytest.mark.asyncio
     async def test_create_user_doesnt_exist(self, users):
         with db.session() as session:
-            await DBQueries(db).create_user(user_id=users[0].id, tz_offset=users[0].tz_offset)
+            await DBQueries(db).create_user(
+                user_id=users[0].id,
+                chat_id=users[0].chat_id,
+                tz_offset=users[0].tz_offset
+            )
 
             created_user = session.execute(select(UserModel).where(UserModel.ID == users[0].id)).scalar()
             session.commit()
 
+            assert created_user.ChatID == users[0].chat_id, 'for created user ChatID incorrect'
             assert created_user.TZOffset == users[0].tz_offset, 'for created user TZOffset incorrect'
 
     @pytest.mark.asyncio
     async def test_create_user_that_exist(self, users):
         with db.session() as session:
-            session.execute(insert(UserModel).values(ID=users[1].id, TZOffset=users[1].tz_offset))
+            session.execute(
+                insert(UserModel)
+                .values(ID=users[1].id, ChatID=users[1].chat_id, TZOffset=users[1].tz_offset)
+            )
             session.commit()
 
-            await DBQueries(db).create_user(user_id=users[1].id, tz_offset=users[1].tz_offset + 10)
+            await DBQueries(db).create_user(
+                user_id=users[1].id,
+                chat_id=users[1].chat_id,
+                tz_offset=users[1].tz_offset + 10
+            )
 
             created_user = session.execute(select(UserModel).where(UserModel.ID == users[1].id)).scalar()
             session.commit()
 
+            assert created_user.ChatID == users[1].chat_id, 'existing user has changed TZOffset'
             assert created_user.TZOffset == users[1].tz_offset, 'existing user has changed TZOffset'
 
 
@@ -105,7 +118,7 @@ class TestUserProducts:
     async def test_add_subscription(self, user_products):
         with db.session() as session:
             user_product, product = user_products[0]
-            session.execute(insert(UserModel).values(ID=user_product.user_id, TZOffset=0))
+            session.execute(insert(UserModel).values(ID=user_product.user_id, ChatID=111111, TZOffset=0))
             session.execute(insert(ProductModel)
                             .values(ID=product.id, Price=product.price, Img=product.img, Title=product.title))
 
@@ -124,7 +137,7 @@ class TestUserProducts:
     async def test_delete_subscription_that_exist(self, user_products):
         with db.session() as session:
             user_product, product = user_products[1]
-            session.execute(insert(UserModel).values(ID=user_product.user_id, TZOffset=0))
+            session.execute(insert(UserModel).values(ID=user_product.user_id, ChatID=111111, TZOffset=0))
             session.execute(insert(ProductModel)
                             .values(ID=product.id, Price=product.price, Img=product.img, Title=product.title))
             session.execute(

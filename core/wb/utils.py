@@ -3,15 +3,17 @@ from decimal import Decimal
 
 from aiogram import Dispatcher
 
+from core.tg.message_texts import Messages
 from core.wb.wb_parser import WbParser, WbProduct
 from db.queries import DBQueries, Subscription
 from logger import loguru_logger
 from schemas.product import Product
+from schemas.user import User
 from utils.transform_types import get_decimal
 from utils.types import ProductID, UserID
 
 
-async def check_product_prices(db: DBQueries, _dp: Dispatcher) -> None:
+async def check_product_prices(db: DBQueries, dp: Dispatcher) -> None:
     """Handler that collects all products and then checks prices for changes"""
 
     loguru_logger.info('\n>>> checking product prices!\n')
@@ -22,8 +24,8 @@ async def check_product_prices(db: DBQueries, _dp: Dispatcher) -> None:
     sub_by_user: dict[UserID, list[Subscription]] = defaultdict(list)
     for sub in subs:
         old_products_by_pid[sub.product.id] = sub.product
-        sub_by_user[sub.user_product.user_id].append(sub)
         subs_by_pid[sub.product.id].append(sub)
+        sub_by_user[sub.user_product.user_id].append(sub)
 
     new_wb_products: dict[ProductID, WbProduct] = await WbParser(
         list(old_products_by_pid.keys())
@@ -43,6 +45,7 @@ async def check_product_prices(db: DBQueries, _dp: Dispatcher) -> None:
             changing_prices[pid] = new_price
 
     if not changing_prices:
+        loguru_logger.info('No change in prices.')
         return
 
     send_notifications: dict[UserID, list[Product]] = defaultdict(list)
@@ -63,6 +66,8 @@ async def check_product_prices(db: DBQueries, _dp: Dispatcher) -> None:
     await db.change_products_prices(changing_prices)
 
     loguru_logger.info(f'users that will receive notification: {str(send_notifications.keys())}')
-    # for user_id, product in send_notifications.items():
-    #     pass
-    # dp.bot.send_message()
+    for user_id, products in send_notifications.items():
+        user: User = await db.get_user(user_id)
+        for product in products:
+            await dp.bot.send_message(user.chat_id, Messages.sub_notification(product))
+            await db.delete_subscription(user.id, product.id)

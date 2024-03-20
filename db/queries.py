@@ -150,16 +150,27 @@ class DBQueries:
     def __init__(self, db: Database) -> None:
         self.db: Database = db
 
-    async def create_user(self, user_id: int, tz_offset: int = MOSCOW_TZ_OFFSET) -> User:
+    async def create_user(
+        self, user_id: int, chat_id: int, tz_offset: int = MOSCOW_TZ_OFFSET
+    ) -> User:
         async with await self.db() as session:
             user: Result = await session.execute(select(UserModel).where(user_id == UserModel.ID))
             user_mdl: UserModel = user.scalar()
             if not user_mdl:
                 user_result: Result = await session.execute(
-                    insert(UserModel).values(ID=user_id, TZOffset=tz_offset).returning(UserModel)
+                    insert(UserModel)
+                    .values(ID=user_id, ChatID=chat_id, TZOffset=tz_offset)
+                    .returning(UserModel)
                 )
                 await session.commit()
                 return cast(User, User.model_validate(user_result.scalar()))
+            await session.commit()
+        return cast(User, User.model_validate(user_mdl))
+
+    async def get_user(self, user_id: int) -> User:
+        async with await self.db() as session:
+            user: Result = await session.execute(select(UserModel).where(user_id == UserModel.ID))
+            user_mdl: UserModel = user.scalar()
             await session.commit()
         return cast(User, User.model_validate(user_mdl))
 

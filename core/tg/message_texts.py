@@ -209,3 +209,18 @@ class Messages:
                 sep='',
             ),
         )
+
+    @staticmethod
+    def sub_notification(product: Product) -> str:
+        return typing.cast(
+            str,
+            fmt.text(
+                'Цена на товар ',
+                fmt.hbold(
+                    f'"{fmt.hlink(str(product.title), form_url_from_product_id(product.id))}"'
+                ),
+                'стала ',
+                fmt.hbold(f'{product.price}!'),
+                sep='',
+            ),
+        )
