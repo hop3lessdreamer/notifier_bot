@@ -1,16 +1,33 @@
 """ Initiation logger """
-from pathlib import Path
-from typing import get_type_hints
+from typing import Any, get_type_hints
 
 from loguru import logger as loguru_logger
 
 from config import bot_config
 
 
-def create_logger() -> loguru_logger:
+class MockLogger:
+    def info(self, __message: str, *args: Any, **kwargs: Any) -> None:
+        ...
+
+    def warning(self, __message: str, *args: Any, **kwargs: Any) -> None:
+        ...
+
+    def error(self, __message: str, *args: Any, **kwargs: Any) -> None:
+        ...
+
+    def catch(self, *args: Any, **kwargs: Any) -> None:
+        ...
+
+
+def create_logger() -> loguru_logger:  # type: ignore
     """Create and return Logger"""
+
+    if not bot_config.LOG_PATH or not bot_config.LOG_LEVEL:
+        return MockLogger()
+
     loguru_logger.add(
-        bot_config.LOG_PATH or f'{Path.cwd()}/bot.log',
+        bot_config.LOG_PATH,
         level=bot_config.LOG_LEVEL,
         enqueue=True,
         diagnose=True,

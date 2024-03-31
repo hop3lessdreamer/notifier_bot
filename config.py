@@ -35,5 +35,9 @@ class BotConfig(BaseSettings):
     def webhook_url(self) -> str:
         return f'{self.WEBHOOK_HOST}{self.WEBHOOK_PATH}'
 
+    @property
+    def price_check_frequency(self) -> int:
+        return self.PRICE_CHECKS_FREQUENCY * 60
 
-bot_config = BotConfig()
+
+bot_config = BotConfig()  # type: ignore

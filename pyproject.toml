@@ -78,6 +78,7 @@ ruff-lsp = "^0.0.50"
 mypy = "^1.8.0"
 pydevd-pycharm = ">=233.13135.95,<233.13136.0"
 pre-commit = "^3.6.1"
+pytest-mock = "^3.14.0"
 
 
 [build-system]
