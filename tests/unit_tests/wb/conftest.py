@@ -4,7 +4,6 @@ from decimal import Decimal
 import pytest
 from datetime import datetime
 
-from core.wb.wb_parser import WbProduct
 from db.queries import Subscription
 from schemas.product import Product
 from schemas.user import User
@@ -75,18 +74,6 @@ class MockedDBQueries:
                 Changed=None
             )
         )
-
-
-@pytest.fixture()
-def mocked_wb_get_products(mocker) -> dict[ProductID, WbProduct]:
-    wb_products = {
-        1: WbProduct(
-            id=1,
-            title='Товар1',
-            price=850
-        )
-    }
-    return mocker.patch('core.wb.wb_parser.WbParser.get_wb_products', return_value=wb_products)
 
 
 @pytest.fixture()
