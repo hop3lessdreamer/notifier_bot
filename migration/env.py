@@ -26,10 +26,7 @@ target_metadata = Base.metadata
 
 
 from config import bot_config
-config.set_main_option(
-    'sqlalchemy.url',
-    f'sqlite+aiosqlite:///{bot_config.DB_PATH}/{bot_config.DB_NAME}'
-)
+config.set_main_option('sqlalchemy.url', bot_config.db_url_async)
 
 
 def run_migrations_offline() -> None:

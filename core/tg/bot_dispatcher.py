@@ -6,7 +6,6 @@ from aiogram.dispatcher import DEFAULT_RATE_LIMIT
 from aiogram.types import ParseMode
 from aiogram.utils import executor
 
-# from aiogram.utils.executor import start_webhook
 from config import bot_config
 from core.tg.handlers import HANDLERS
 from core.tg.storage import Storage
@@ -15,16 +14,6 @@ from core.tg.storage import Storage
 from db import Database
 from db.queries import DBQueries
 from logger import loguru_logger
-
-# async def on_startup(dp: TGDispatcher) -> None:
-#     await dp.bot.set_webhook(
-#         url=bot_config.webhook_url,
-#         drop_pending_updates=True
-#     )
-#
-#
-# async def on_shutdown(dp: TGDispatcher) -> None:
-#     await dp.bot.delete_webhook()
 
 
 @dataclass
@@ -55,15 +44,6 @@ class BotDispatcher:
     def start_polling(self) -> None:
         """"""
 
-        # start_webhook(
-        #     dispatcher=self.dp,
-        #     webhook_path=bot_config.WEBHOOK_PATH,
-        #     skip_updates=True,
-        #     on_startup=on_startup,
-        #     on_shutdown=on_shutdown,
-        #     host=bot_config.WEBAPP_HOST,
-        #     port=bot_config.WEBAPP_PORT
-        # )
         loguru_logger.info('start bot')
         self.dp.loop.create_task(self.register_handlers())
         self.dp.loop.create_task(self.__check_product_prices_task())
