@@ -32,7 +32,7 @@ class BotDispatcher:
         """"""
 
         while True:
-            await sleep(bot_config.PRICE_CHECKS_FREQUENCY)
+            await sleep(bot_config.price_check_frequency)
             await check_product_prices(DBQueries(self.db), self.dp)
 
     async def register_handlers(self) -> None:
