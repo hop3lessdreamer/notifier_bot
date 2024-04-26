@@ -9,8 +9,7 @@ from aiogram.utils import executor
 from config import bot_config
 from core.tg.handlers import HANDLERS
 from core.tg.storage import Storage
-
-# from core.wb.utils import check_product_prices
+from core.wb.utils import check_product_prices
 from db import Database
 from db.queries import DBQueries
 from logger import loguru_logger
@@ -33,8 +32,8 @@ class BotDispatcher:
         """"""
 
         while True:
-            await sleep(20)
-            # await check_product_prices(DBQueries(self.db), self.dp)
+            await sleep(bot_config.PRICE_CHECKS_FREQUENCY)
+            await check_product_prices(DBQueries(self.db), self.dp)
 
     async def register_handlers(self) -> None:
         for handler in HANDLERS:
