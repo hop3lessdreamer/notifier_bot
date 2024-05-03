@@ -12,10 +12,10 @@ from sqlalchemy.ext.asyncio import (
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 
 from config import bot_config
+from logger import logger
 
 
 class Database(ABC):
-
     __slots__ = ('async_sessionmaker', '_engine', '_aengine')
 
     def __init__(self) -> None:
@@ -58,13 +58,12 @@ class SQLiteDatabase(Database):
     def aengine(self) -> AsyncEngine:
         if self._aengine is None:
             self._aengine = create_async_engine(bot_config.db_url_async, echo=True)
+            logger.info(f'init db connection {bot_config.db_url_async}')
         return self._aengine
 
     def setup(self) -> None:
         self.async_sessionmaker = async_sessionmaker(
-            bind=self.aengine,
-            expire_on_commit=False,
-            class_=AsyncSession
+            bind=self.aengine, expire_on_commit=False, class_=AsyncSession
         )
 
     def init_db(self, base: DeclarativeBase) -> None:

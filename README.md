@@ -6,3 +6,5 @@
 6. Create sqlite db (*.db)
 7. Set up .env
 8. Execute in terminal `task build`
+
+Use `task recreate` to recreate docker container when something changed

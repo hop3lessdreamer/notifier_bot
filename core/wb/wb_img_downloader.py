@@ -46,8 +46,12 @@ class WbImgDownloader(Generic[b64]):
             return '//basket-10.wbbasket.ru'
         elif 1602 <= self.__vol <= 1655:
             return '//basket-11.wbbasket.ru'
-        else:
+        elif 1656 <= self.__vol <= 1919:
             return '//basket-12.wbbasket.ru'
+        elif 1920 <= self.__vol <= 2045:
+            return '//basket-13.wbbasket.ru'
+
+        return '//basket-14.wbbasket.ru'
 
     @cached_property
     def img_url(self) -> str:

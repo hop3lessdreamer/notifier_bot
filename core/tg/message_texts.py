@@ -216,9 +216,7 @@ class Messages:
             str,
             fmt.text(
                 'Цена на товар ',
-                fmt.hbold(
-                    f'"{fmt.hlink(str(product.title), form_url_from_product_id(product.id))}"'
-                ),
+                f'"{fmt.hlink(str(product.title), form_url_from_product_id(product.id))}"',
                 'стала ',
                 fmt.hbold(f'{product.price}!'),
                 sep='',

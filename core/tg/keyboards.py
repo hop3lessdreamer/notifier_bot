@@ -3,6 +3,7 @@ from collections.abc import Sequence
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 from core.tg.buttons import (
+    ACTIONS_ON_NOTIFY,
     ACTIONS_WITH_PRODUCT,
     ACTIONS_WITH_SUBSCRIPTIONS_W_NAV,
     ACTIONS_WITH_SUBSCRIPTIONS_W_NAV_LEFT_DISABLED,
@@ -33,52 +34,23 @@ class RowKeyboard(InlineKeyboardMarkup):
 
 
 class MenuKeyboard(RowKeyboard):
-    def __init__(
-        self,
-        row_width: int = 3,
-        row_size: int = 1,
-        inline_keyboard: list[list[InlineKeyboardButton]] | None = None,
-        buttons: Sequence[InlineKeyboardButton] = AVAILABLE_ACTIONS,
-        **kwargs: dict,
-    ) -> None:
-        super().__init__(row_width, row_size, inline_keyboard, buttons=buttons, **kwargs)
+    def __init__(self) -> None:
+        super().__init__(buttons=AVAILABLE_ACTIONS)
 
 
-class MenuKeyboardWEmptySubs(MenuKeyboard):
-    def __init__(
-        self,
-        row_width: int = 3,
-        row_size: int = 1,
-        inline_keyboard: list[list[InlineKeyboardButton]] | None = None,
-        buttons: Sequence[InlineKeyboardButton] = AVAILABLE_ACTIONS_W_EMPTY_SUBS,
-        **kwargs: dict,
-    ) -> None:
-        super().__init__(row_width, row_size, inline_keyboard, buttons=buttons, **kwargs)
+class MenuKeyboardWEmptySubs(RowKeyboard):
+    def __init__(self) -> None:
+        super().__init__(buttons=AVAILABLE_ACTIONS_W_EMPTY_SUBS)
 
 
 class ProductKeyboard(RowKeyboard):
-    def __init__(
-        self,
-        row_width: int = 3,
-        row_size: int = 1,
-        inline_keyboard: list[list[InlineKeyboardButton]] | None = None,
-        **kwargs: dict,
-    ) -> None:
-        super().__init__(
-            row_width, row_size, inline_keyboard, buttons=ACTIONS_WITH_PRODUCT, **kwargs
-        )
+    def __init__(self) -> None:
+        super().__init__(buttons=ACTIONS_WITH_PRODUCT)
 
 
 class SubsNavigationKeyboard(InlineKeyboardMarkup):
-    def __init__(
-        self,
-        subs: SubscriptionsInfo,
-        product_id: int,
-        row_width: int = 3,
-        inline_keyboard: list[list[InlineKeyboardButton]] | None = None,
-        **kwargs: dict,
-    ) -> None:
-        super().__init__(row_width, inline_keyboard, **kwargs)
+    def __init__(self, subs: SubscriptionsInfo, product_id: int) -> None:
+        super().__init__()
         buttons = [
             (
                 InlineKeyboardButton(
@@ -100,3 +72,8 @@ class SubsNavigationKeyboard(InlineKeyboardMarkup):
 
         for buttons_batch in buttons:
             self.row(*buttons_batch)
+
+
+class OnSubNotifyKeyboard(RowKeyboard):
+    def __init__(self) -> None:
+        super().__init__(buttons=ACTIONS_ON_NOTIFY)

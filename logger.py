@@ -39,3 +39,4 @@ def create_logger() -> loguru_logger:  # type: ignore
 get_type_hints(create_logger)
 #   variable for import in other modules to logging
 logger = create_logger()
+logger.info(f'init logger (path={bot_config.LOG_PATH}, level={bot_config.LOG_LEVEL})')

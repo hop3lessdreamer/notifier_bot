@@ -2,12 +2,13 @@ from collections import defaultdict
 from decimal import Decimal
 from typing import NamedTuple
 
-from aiogram import Dispatcher
-
+from core.tg.files import transferring_file
+from core.tg.keyboards import OnSubNotifyKeyboard
 from core.tg.message_texts import Messages
-from core.wb.wb_parser import WbParser, WbProduct
+from core.tg.tg_dispatcher import TgDispatcher
+from core.wb.wb_parser import WbProduct
 from db.queries import DBQueries, Subscription
-from logger import loguru_logger
+from logger import logger
 from schemas.product import Product
 from schemas.user import User
 from utils.transform_types import get_decimal
@@ -19,10 +20,10 @@ class PriceChange(NamedTuple):
     new: Decimal
 
 
-async def check_product_prices(db: DBQueries, dp: Dispatcher) -> dict[UserID, list[Product]]:
+async def check_product_prices(db: DBQueries, dp: TgDispatcher) -> dict[UserID, list[Product]]:
     """Handler that collects all products and then checks prices for changes"""
 
-    loguru_logger.info('\n>>> checking product prices!\n')
+    logger.info('\n>>> checking product prices!\n')
 
     subs: list[Subscription] = await db.get_all_subscriptions()
     old_products_by_pid: dict[ProductID, Product] = {}
@@ -33,16 +34,17 @@ async def check_product_prices(db: DBQueries, dp: Dispatcher) -> dict[UserID, li
         subs_by_pid[sub.product.id].append(sub)
         sub_by_user[sub.user_product.user_id].append(sub)
 
-    new_wb_products: dict[ProductID, WbProduct] = await WbParser(
-        list(old_products_by_pid.keys())
-    ).get_wb_products()
+    # new_wb_products: dict[ProductID, WbProduct] = await WbParser(
+    #     list(old_products_by_pid.keys())
+    # ).get_wb_products()
+    new_wb_products = {201323949: WbProduct(201323949, '1', 500)}
 
     changing_prices: dict[ProductID, PriceChange] = {}
     for pid, new_product in new_wb_products.items():
         old_product: Product | None = old_products_by_pid.get(pid)
 
         if old_product is None:
-            loguru_logger.error('new product from response was not found in db!')
+            logger.error('new product from response was not found in db!')
             continue
         if old_product.price != new_product.price:
             new_price: Decimal | None = get_decimal(new_product.price, 2)
@@ -51,14 +53,14 @@ async def check_product_prices(db: DBQueries, dp: Dispatcher) -> dict[UserID, li
             changing_prices[pid] = PriceChange(old_product.price, new_price)
 
     if not changing_prices:
-        loguru_logger.info('No change in prices.')
+        logger.info('No change in prices.')
         return {}
 
     send_notifications: dict[UserID, list[Product]] = defaultdict(list)
     for pid, price_change in changing_prices.items():
         subs_w_changing_price: list[Subscription] | None = subs_by_pid.get(pid)
         if subs_w_changing_price is None:
-            loguru_logger.error('new product from response was not found in db!')
+            logger.error('new product from response was not found in db!')
             continue
         for sub in subs_w_changing_price:
             new_price = get_decimal(price_change.new, 2)
@@ -68,14 +70,23 @@ async def check_product_prices(db: DBQueries, dp: Dispatcher) -> dict[UserID, li
                 sub.product.price = new_price
                 send_notifications[sub.user_product.user_id].append(sub.product)
 
-    loguru_logger.info(f'products that changed prices:\n{str(changing_prices)}')
+    logger.info(f'products that changed prices:\n{str(changing_prices)}')
     await db.change_products_prices({pid: change.new for pid, change in changing_prices.items()})
 
-    loguru_logger.info(f'users that will receive notification: {str(send_notifications.keys())}')
+    logger.info(f'users that will receive notification: {str(send_notifications.keys())}')
     for user_id, products in send_notifications.items():
         user: User = await db.get_user(user_id)
         for product in products:
-            await dp.bot.send_message(user.chat_id, Messages.sub_notification(product))
+            with transferring_file(product.img) as product_img:
+                await dp.storage.write_wb_product(
+                    user.id, user.chat_id, new_wb_products[product.id]
+                )
+                await dp.bot.send_photo(
+                    user.chat_id,
+                    photo=product_img,
+                    caption=Messages.sub_notification(product),
+                    reply_markup=OnSubNotifyKeyboard(),
+                )
             await db.delete_subscription(user.id, product.id)
 
     return send_notifications
