@@ -8,7 +8,7 @@ from core.tg.message_texts import Messages
 from core.tg.tg_dispatcher import TgDispatcher
 from core.wb.wb_parser import WbProduct
 from db.queries import DBQueries, Subscription
-from logger import logger
+from logger import log_node, logger
 from schemas.product import Product
 from schemas.user import User
 from utils.transform_types import get_decimal
@@ -20,10 +20,9 @@ class PriceChange(NamedTuple):
     new: Decimal
 
 
+@log_node('checking product prices!')
 async def check_product_prices(db: DBQueries, dp: TgDispatcher) -> dict[UserID, list[Product]]:
     """Handler that collects all products and then checks prices for changes"""
-
-    logger.info('\n>>> checking product prices!\n')
 
     subs: list[Subscription] = await db.get_all_subscriptions()
     old_products_by_pid: dict[ProductID, Product] = {}
