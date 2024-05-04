@@ -7,7 +7,7 @@ from loguru import logger as loguru_logger
 
 from config import bot_config
 
-LOG_FORMAT = '*{time: DD.MM.YY HH:mm:ss.SS} | {level} | {function} | {message}*'
+LOG_FORMAT = '>>>{time: DD.MM.YY HH:mm:ss.SS} | {level} | {function} | {message}'
 
 
 class MockLogger:
