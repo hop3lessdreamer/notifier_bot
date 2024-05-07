@@ -6,7 +6,7 @@ from core.tg.files import transferring_file
 from core.tg.keyboards import OnSubNotifyKeyboard
 from core.tg.message_texts import Messages
 from core.tg.tg_dispatcher import TgDispatcher
-from core.wb.wb_parser import WbProduct
+from core.wb.wb_parser import WbParser, WbProduct
 from db.queries import DBQueries, Subscription
 from logger import log_node, logger
 from schemas.product import Product
@@ -33,10 +33,9 @@ async def check_product_prices(db: DBQueries, dp: TgDispatcher) -> dict[UserID, 
         subs_by_pid[sub.product.id].append(sub)
         sub_by_user[sub.user_product.user_id].append(sub)
 
-    # new_wb_products: dict[ProductID, WbProduct] = await WbParser(
-    #     list(old_products_by_pid.keys())
-    # ).get_wb_products()
-    new_wb_products = {201323949: WbProduct(201323949, '1', 500)}
+    new_wb_products: dict[ProductID, WbProduct] = await WbParser(
+        list(old_products_by_pid.keys())
+    ).get_wb_products()
 
     changing_prices: dict[ProductID, PriceChange] = {}
     for pid, new_product in new_wb_products.items():
