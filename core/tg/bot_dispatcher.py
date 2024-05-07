@@ -3,6 +3,7 @@ from dataclasses import dataclass
 
 from aiogram.utils import executor
 
+from config import bot_config
 from core.tg.handlers import HANDLERS
 from core.tg.tg_dispatcher import TgDispatcher
 from core.wb.utils import check_product_prices
@@ -20,7 +21,7 @@ class BotDispatcher:
         """"""
 
         while True:
-            await sleep(20)
+            await sleep(bot_config.price_check_frequency)
             await check_product_prices(DBQueries(self.db), self.dp)
 
     async def register_handlers(self) -> None:
