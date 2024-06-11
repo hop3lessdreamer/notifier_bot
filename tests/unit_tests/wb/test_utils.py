@@ -9,11 +9,15 @@ from utils.types import UserID
 
 
 @pytest.mark.asyncio
-async def test_check_product_prices(mocked_wb_get_products, mocked_get_all_subs, mocked_change_products_prices):
+async def test_check_product_prices(
+        mocked_wb_get_products,
+        mocked_get_all_subs,
+        mocked_change_products_prices
+):
 
     notifications: dict[UserID, list[Product]] = await check_product_prices(
         MockedDBQueries(),
         MockerTGDispatcher()
     )
 
-    assert notifications.get(101) == [Product(ID=1, Price=Decimal(850), Img=b'', Title='Товар1')]
+    assert notifications.get(101) == [Product(ID=101, Price=Decimal(850), Img=b'', Title='Товар101')]

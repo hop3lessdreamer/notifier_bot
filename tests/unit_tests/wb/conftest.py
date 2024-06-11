@@ -4,6 +4,7 @@ from decimal import Decimal
 import pytest
 from datetime import datetime
 
+from core.tg.tg_dispatcher import TgDispatcher
 from db.queries import Subscription
 from schemas.product import Product
 from schemas.user import User
@@ -14,11 +15,18 @@ from utils.types import ProductID
 @dataclass
 class MockedBot:
     async def send_message(self, *args, **kwargs) -> None: ...
+    async def send_photo(self, *args, **kwargs) -> None: ...
+
+
+@dataclass
+class MockedStorage:
+    async def write_wb_product(self, *args, **kwargs) -> None: ...
 
 
 @dataclass
 class MockerTGDispatcher:
     bot: MockedBot = field(default_factory=MockedBot)
+    storage: MockedStorage = field(default_factory=MockedStorage)
 
 
 class MockedDBQueries:
@@ -26,14 +34,14 @@ class MockedDBQueries:
         return [
             Subscription(
                 Product(
-                    ID=1,
+                    ID=101,
                     Price=Decimal(1000),
                     Img=b'',
-                    Title='Товар1'
+                    Title='Товар101'
                 ),
                 UserProduct(
                     UserID=101,
-                    ProductID=1,
+                    ProductID=101,
                     PriceThreshold=Decimal(900),
                     Added=datetime(day=30, month=3, year=2024, hour=20, minute=0, second=0),
                     Changed=None
@@ -44,10 +52,10 @@ class MockedDBQueries:
     async def change_products_prices(self, product_prices: dict[int, Decimal]) -> list[Product]:
         return [
             Product(
-                ID=1,
+                ID=101,
                 Price=Decimal(850),
                 Img=b'',
-                Title='Товар1'
+                Title='Товар101'
             )
         ]
 
@@ -81,14 +89,14 @@ def mocked_get_all_subs(mocker) -> list[Subscription]:
     subs: list[Subscription] = [
         Subscription(
             Product(
-                ID=1,
+                ID=101,
                 Price=Decimal(1000),
                 Img=b'',
-                Title='Товар1'
+                Title='Товар101'
             ),
             UserProduct(
                 UserID=101,
-                ProductID=1,
+                ProductID=101,
                 PriceThreshold=Decimal(900),
                 Added=datetime(day=30, month=3, year=2024, hour=20, minute=0, second=0),
                 Changed=None

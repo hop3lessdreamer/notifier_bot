@@ -52,7 +52,7 @@ class WbProduct:
 class WbParser:
     """Class that allow parse product card by product ids"""
 
-    RAW_URL = 'https://card.wb.ru/cards/detail?nm={}'
+    RAW_URL = 'https://card.wb.ru/cards/detail?curr=rub&dest=-1257786&nm={}'
 
     def __init__(self, product_ids: list[int]) -> None:
         self.product_ids: list[int] = product_ids
