@@ -3,7 +3,7 @@ from typing import cast
 
 from fake_useragent import FakeUserAgent
 
-DEFAULT_TIMEOUT = 3
+DEFAULT_TIMEOUT = 10
 
 
 def get_fake_ua() -> str:
