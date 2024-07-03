@@ -2,7 +2,10 @@
 
 from aiogram.types import InlineKeyboardButton
 
-AVAILABLE_MARKET_PLACES = (InlineKeyboardButton(text='Wildberries', callback_data='wildberries'),)
+AVAILABLE_MARKET_PLACES = (
+    InlineKeyboardButton(text='Wildberries', callback_data='wildberries'),
+    InlineKeyboardButton(text='OZON', callback_data='ozon'),
+)
 
 AVAILABLE_ACTIONS = (
     InlineKeyboardButton(text='Перевыбрать маркетплейс', callback_data='choose_marketplace'),

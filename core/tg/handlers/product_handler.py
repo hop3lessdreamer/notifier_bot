@@ -18,7 +18,7 @@ from db.queries import Subscription
 from logger import loguru_logger
 from schemas.product import Product
 from utils.transform_types import get_decimal
-from utils.validators import validate_product_id
+from utils.validators import validate_wb_product_id
 
 
 class ProductHandler(BaseHandler):
@@ -42,7 +42,7 @@ class ProductHandler(BaseHandler):
     async def ask_action_with_product(self, message: Message, state: Context) -> None:
         """"""
 
-        product_id: int | None = validate_product_id(message.text)
+        product_id: int | None = validate_wb_product_id(message.text)
         if product_id is None:
             loguru_logger.warning(f'Некорректный ввод товара ({message.text})!')
             await message.answer(Msg.INVALID_PRINTED_PRODUCT)

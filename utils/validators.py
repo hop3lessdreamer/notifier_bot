@@ -7,7 +7,7 @@ from utils.transform_types import get_int
 url_parse = re.compile(r'(http[s]?:\/\/)?([^\/\s]+\/)(catalog)\/(\d+)')  # product_id is 4 group
 
 
-def validate_product_id(message: str) -> int | None:
+def validate_wb_product_id(message: str) -> int | None:
     """Returns product id from user message to bot"""
 
     #   message contain only product_id
