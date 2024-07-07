@@ -1,6 +1,7 @@
 """ Functions that helps work with types """
 
 from base64 import b64decode, b64encode
+from collections.abc import MutableMapping
 from decimal import Decimal
 from json import dumps, loads
 
@@ -22,7 +23,9 @@ def from_json_to_dict(value: str, default: dict | None = None) -> dict | None:
     return loads(value)  # type: ignore
 
 
-def from_dict_to_json(value: dict, default: str = '', encoder: type[JSONEncoder] = Encoder) -> str:
+def from_dict_to_json(
+    value: MutableMapping, default: str = '', encoder: type[JSONEncoder] = Encoder
+) -> str:
     if not value:
         return default
     return dumps(value, cls=encoder)
