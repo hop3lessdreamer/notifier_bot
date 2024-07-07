@@ -2,6 +2,7 @@ from decimal import Decimal
 
 from aiogram.types import CallbackQuery, InlineKeyboardMarkup, Message
 
+from core.schemas.product import Product
 from core.tg.buttons import (
     ACTIONS_W_PRODUCT_IF_EXIST_SUBSCRIPTION_AND_CHOSEN_W_THR,
     ACTIONS_W_PRODUCT_IF_EXIST_SUBSCRIPTION_AND_CHOSEN_WO_THR,
@@ -16,7 +17,6 @@ from core.tg.storage import Context
 from core.wb.wb_parser import WbParser, WbProduct
 from db.queries import Subscription
 from logger import loguru_logger
-from schemas.product import Product
 from utils.transform_types import get_decimal
 from utils.validators import validate_wb_product_id
 

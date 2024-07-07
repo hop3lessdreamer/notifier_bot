@@ -1,9 +1,9 @@
 """ Product model description """
 
-from sqlalchemy import Column, BigInteger, Numeric, BLOB, String
+from sqlalchemy import BLOB, BigInteger, Column, Numeric, String
 from sqlalchemy.orm import relationship
 
-from db.models.base import Base
+from infrastructure.db.models.base import Base
 
 
 class ProductModel(Base):

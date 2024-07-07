@@ -4,11 +4,10 @@ from decimal import Decimal
 import pytest
 from datetime import datetime
 
-from core.tg.tg_dispatcher import TgDispatcher
 from db.queries import Subscription
-from schemas.product import Product
-from schemas.user import User
-from schemas.user_product import UserProduct
+from core.schemas.product import Product
+from core.schemas.user import User
+from core.schemas.user_product import UserProduct
 from utils.types import ProductID
 
 

@@ -22,3 +22,9 @@ class UserProduct(BaseModel):
     @classmethod
     def set_precision_to_price(cls, price_threshold: Decimal) -> Decimal | None:
         return get_decimal(price_threshold, 2)
+
+
+class UserProductAdd(BaseModel):
+    user_id: PositiveInt = Field(alias='UserID')
+    product_id: PositiveInt = Field(alias='ProductID')
+    price_threshold: Decimal = Field(alias='PriceThreshold')

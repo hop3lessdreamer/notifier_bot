@@ -5,25 +5,13 @@ import pathlib
 import pytest
 from sqlalchemy import delete, insert
 
-from config import bot_config
 from db import db
-from db.models.base import Base
-from db.models.user import UserModel
-from db.models.product import ProductModel
-from db.models.user_product import UserProductModel
-from schemas.product import Product
-from schemas.user import User
-from schemas.user_product import UserProduct
-
-
-@pytest.fixture(scope='session', autouse=True)
-def setup_db():
-    assert bot_config.MODE == 'TEST', 'using a non-test environment!'
-
-    db.drop_db(Base)
-    db.init_db(Base)
-    yield
-    db.drop_db(Base)
+from infrastructure.db.models.user import UserModel
+from infrastructure.db.models import ProductModel
+from infrastructure.db.models.user_product import UserProductModel
+from core.schemas.product import Product
+from core.schemas.user import User
+from core.schemas.user_product import UserProduct
 
 
 @pytest.fixture

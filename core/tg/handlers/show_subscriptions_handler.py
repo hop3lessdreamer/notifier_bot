@@ -66,7 +66,7 @@ class ShowSubscriptionsHandlers(BaseHandler):
 
         deleted_sub: Subscription = subs_info.del_sub_by_cur_pos()
 
-        with transferring_file(subs_info.sub_by_cur_pos.product.img) as photo:
+        with transferring_file(deleted_sub.product.img) as photo:
             await call.message.edit_media(
                 InputMediaPhoto(media=photo, caption=Msg.subscription(subs_info)),
                 reply_markup=SubsNavigationKeyboard(

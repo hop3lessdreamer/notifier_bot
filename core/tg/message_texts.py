@@ -5,10 +5,10 @@ import typing
 from _decimal import Decimal
 from aiogram.utils import markdown as fmt
 
+from core.schemas.product import Product
 from core.wb import form_url_from_product_id
 from core.wb.wb_parser import WbProduct
 from db.queries import Subscription, SubscriptionsInfo
-from schemas.product import Product
 
 
 class Messages:

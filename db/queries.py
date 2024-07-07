@@ -9,14 +9,14 @@ from sqlalchemy.sql.expression import Function, delete, exists, insert, select, 
 from sqlalchemy.sql.functions import count
 
 from constants import MOSCOW_TZ_OFFSET
+from core.schemas.product import Product
+from core.schemas.user import User
+from core.schemas.user_product import UserProduct
 from core.wb.wb_parser import WbProduct
 from db import Database
-from db.models.product import ProductModel
-from db.models.user import UserModel
-from db.models.user_product import UserProductModel
-from schemas.product import Product
-from schemas.user import User
-from schemas.user_product import UserProduct
+from infrastructure.db.models.product import ProductModel
+from infrastructure.db.models.user import UserModel
+from infrastructure.db.models.user_product import UserProductModel
 from utils.transform_types import from_dict_to_json
 
 

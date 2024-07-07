@@ -1,9 +1,9 @@
 """ UserProduct model description """
 
-from sqlalchemy import Column, BigInteger, ForeignKey, Numeric, DateTime, DDL, event
+from sqlalchemy import DDL, BigInteger, Column, DateTime, ForeignKey, Numeric, event
 from sqlalchemy.orm import relationship
 
-from db.models.base import Base
+from infrastructure.db.models.base import Base
 
 
 class UserProductModel(Base):
@@ -50,8 +50,4 @@ trigger = DDL(
 )
 
 
-event.listen(
-    UserProductModel.__table__,
-    'after_create',
-    trigger
-)
+event.listen(UserProductModel.__table__, 'after_create', trigger)

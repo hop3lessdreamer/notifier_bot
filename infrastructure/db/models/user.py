@@ -3,7 +3,7 @@
 from sqlalchemy import BigInteger, Column, SmallInteger
 from sqlalchemy.orm import relationship
 
-from db.models.base import Base
+from infrastructure.db.models.base import Base
 
 
 class UserModel(Base):

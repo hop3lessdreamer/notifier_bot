@@ -1,9 +1,10 @@
 import pytest
 from sqlalchemy import delete
 
+from config import bot_config
 from db import db
 from core.wb.wb_parser import WbProduct
-from db.models import ProductModel, UserModel, UserProductModel
+from infrastructure.db.models import ProductModel, UserModel, UserProductModel, Base
 from utils.types import ProductID
 
 
@@ -27,3 +28,13 @@ def clear_tables():
         session.execute(delete(UserModel))
         session.execute(delete(UserProductModel))
         session.commit()
+
+
+@pytest.fixture(scope='session', autouse=True)
+def setup_db():
+    assert bot_config.MODE == 'TEST', 'using a non-test environment!'
+
+    db.drop_db(Base)
+    db.init_db(Base)
+    yield
+    db.drop_db(Base)

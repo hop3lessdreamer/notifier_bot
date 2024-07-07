@@ -3,7 +3,7 @@ from decimal import Decimal
 import pytest
 
 from core.wb.utils import check_product_prices
-from schemas.product import Product
+from core.schemas.product import Product
 from tests.unit_tests.wb.conftest import MockedDBQueries, MockerTGDispatcher
 from utils.types import UserID
 

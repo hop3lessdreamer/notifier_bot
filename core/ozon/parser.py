@@ -9,7 +9,7 @@ from typing import Any, cast
 from aiohttp import ClientSession, ClientTimeout
 
 from core.exceptions import OzonProductOutOfStock, OzonProductValidateError, ResponseError
-from schemas.product import Product
+from core.schemas.product import Product
 from utils.iterable import first
 from utils.response import DEFAULT_TIMEOUT, get_fake_headers
 from utils.transform_types import from_json_to_dict, get_decimal, get_int

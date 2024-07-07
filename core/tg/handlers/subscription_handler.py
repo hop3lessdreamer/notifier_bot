@@ -2,6 +2,7 @@ from decimal import Decimal
 
 from aiogram.types import CallbackQuery, Message
 
+from core.schemas.product import Product
 from core.tg.files import transferring_file
 from core.tg.handlers.base_handler import BaseHandler
 from core.tg.message_texts import Messages as Msg
@@ -9,7 +10,6 @@ from core.tg.notifier_state import NotifierState
 from core.tg.storage import Context
 from core.wb.wb_img_downloader import WbImgDownloader
 from core.wb.wb_parser import WbProduct
-from schemas.product import Product
 from utils.transform_types import get_decimal, get_percents
 from utils.types import b64
 

@@ -2,6 +2,8 @@ from collections import defaultdict
 from decimal import Decimal
 from typing import NamedTuple
 
+from core.schemas.product import Product
+from core.schemas.user import User
 from core.tg.files import transferring_file
 from core.tg.keyboards import OnSubNotifyKeyboard
 from core.tg.message_texts import Messages
@@ -9,8 +11,6 @@ from core.tg.tg_dispatcher import TgDispatcher
 from core.wb.wb_parser import WbParser, WbProduct
 from db.queries import DBQueries, Subscription
 from logger import log_node, logger
-from schemas.product import Product
-from schemas.user import User
 from utils.transform_types import get_decimal
 from utils.types import ProductID, UserID
 

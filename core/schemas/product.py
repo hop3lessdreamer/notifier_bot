@@ -1,6 +1,7 @@
 """ Product's schema """
 
 from decimal import Decimal
+from typing import TypedDict
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 from pydantic.types import PositiveInt
@@ -20,3 +21,8 @@ class Product(BaseModel):
         return get_decimal(price, 2)
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class NewPrices(TypedDict):
+    product_id: int
+    price: Decimal

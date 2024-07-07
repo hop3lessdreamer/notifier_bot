@@ -4,7 +4,7 @@ import pytest
 
 from core.exceptions import OzonProductOutOfStock
 from core.ozon.parser import OzonProductParser
-from schemas.product import Product
+from core.schemas.product import Product
 
 
 @pytest.mark.asyncio
