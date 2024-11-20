@@ -12,7 +12,7 @@ from core.exceptions import OzonProductOutOfStock, OzonProductValidateError, Res
 from core.schemas.product import Product
 from utils.iterable import first
 from utils.response import DEFAULT_TIMEOUT, get_fake_headers
-from utils.transform_types import from_json_to_dict, get_decimal, get_int
+from utils.transform_types import from_json_to_dict, get_int, try_get_decimal
 
 PRODUCT_ID_IN_URI = re.compile(r'product.+-(\d+)\/')
 ONLY_DIGITS = re.compile(r'\d+')
@@ -70,7 +70,7 @@ class OzonProductParser:
             elif k.startswith('webPrice-'):
                 price_info: dict[str, Any] = cast(dict[str, Any], from_json_to_dict(v))
                 raw_price: str = price_info.get('price', '')
-                price = get_decimal((re.search(ONLY_DIGITS, raw_price) or re.Match()).group())
+                price = try_get_decimal((re.search(ONLY_DIGITS, raw_price) or re.Match()).group())
 
             elif k.startswith('webProductHeading-'):
                 heading_info: dict[str, Any] = cast(dict[str, Any], from_json_to_dict(v))

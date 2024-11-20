@@ -1,5 +1,6 @@
 """ Functions that helps work with types """
 
+import contextlib
 from base64 import b64decode, b64encode
 from collections.abc import MutableMapping
 from decimal import Decimal
@@ -31,10 +32,10 @@ def from_dict_to_json(
     return dumps(value, cls=encoder)
 
 
-def from_bytes_to_b64(data: bytes, default: b64 = b'') -> b64:  # type: ignore
+def from_bytes_to_b64(data: bytes, default: b64 = b'') -> b64:
     if not data:
         return default
-    return b64encode(data)  # type: ignore
+    return b64encode(data)
 
 
 def from_b64_to_bytes(data: b64, default: bytes = b'') -> bytes:
@@ -43,25 +44,29 @@ def from_b64_to_bytes(data: b64, default: bytes = b'') -> bytes:
     return b64decode(data)
 
 
-def get_decimal(
+def get_decimal(value: str | int | float | Decimal, precision: int | None) -> Decimal:
+    decimal_value = Decimal(value)
+    if precision:
+        decimal_value = decimal_value.quantize(Decimal(str(1 / (10 * precision))))
+    return decimal_value
+
+
+def try_get_decimal(
     value: str | int | float | Decimal | None,
     precision: int | None = None,
     default: Decimal | None = None,
 ) -> Decimal | None:
+    decimal_value: Decimal | None = default
     if value is None:
-        return default
-    try:
-        decimal_value = Decimal(value)
-        if precision:
-            decimal_value = decimal_value.quantize(Decimal(str(1 / (10 * precision))))
         return decimal_value
-    except BaseException:
-        return default
+    with contextlib.suppress(Exception):
+        decimal_value = get_decimal(value, precision)
+    return decimal_value
 
 
 def get_percents(value: int | float | str, default: Decimal | None = None) -> Decimal | None:
-    percents: Decimal | None = get_decimal(value, 1)
+    percents: Decimal | None = try_get_decimal(value, 1)
     if not percents or percents >= 100:
         return default
 
-    return get_decimal(1 - percents / 100)
+    return try_get_decimal(1 - percents / 100)

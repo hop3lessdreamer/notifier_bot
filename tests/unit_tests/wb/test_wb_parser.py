@@ -5,7 +5,8 @@ from http import HTTPStatus
 
 import pytest
 
-from core.wb.wb_parser import WbParser, WbProduct
+from core.schemas.product import WbProduct
+from core.services.wb_parser import WbParserService
 
 from utils.iterable import first
 
@@ -17,12 +18,12 @@ SUCCESS_PRODUCT_IDS = [19456624, 19456621]
 
 @pytest.fixture
 def product_response():
-    return get(WbParser(SUCCESS_PRODUCT_ID).url)
+    return get(WbParserService(SUCCESS_PRODUCT_ID).url)
 
 
 @pytest.fixture
 def products_response():
-    return get(WbParser(SUCCESS_PRODUCT_IDS).url)
+    return get(WbParserService(SUCCESS_PRODUCT_IDS).url)
 
 
 def test_status_success_response(product_response):
@@ -53,7 +54,7 @@ def test_response_structure(product_response):
 
 @pytest.mark.asyncio
 async def test_get_wb_products():
-    products: dict[int, WbProduct] = await WbParser(SUCCESS_PRODUCT_ID).get_wb_products()
+    products: dict[int, WbProduct] = await WbParserService(SUCCESS_PRODUCT_ID).get_wb_products()
     product: WbProduct = first(products.values())
 
     assert product.id == first(SUCCESS_PRODUCT_ID)

@@ -1,3 +1,5 @@
+from dataclasses import dataclass
+
 from sqlalchemy import Result, Row, desc, select
 
 from core.repositories.sub_product import ISubProductRepo
@@ -9,6 +11,7 @@ from infrastructure.db.models.product import ProductModel
 from infrastructure.db.models.user_product import UserProductModel
 
 
+@dataclass
 class SubProductRepoImpl(ISubProductRepo):
     db_conn: Database
 

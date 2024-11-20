@@ -13,7 +13,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision: str = '8d921dbd65d9'
-down_revision: Union[str, None] = 'd5e4d34831da'
+down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
@@ -23,7 +23,7 @@ def upgrade() -> None:
     op.create_table('Product',
     sa.Column('ID', sa.BigInteger(), nullable=False),
     sa.Column('Price', sa.Numeric(), nullable=False),
-    sa.Column('Img', sa.BLOB(), nullable=False),
+    sa.Column('Img', sa.LargeBinary(), nullable=False),
     sa.Column('Title', sa.String(length=255), nullable=False),
     sa.PrimaryKeyConstraint('ID')
     )

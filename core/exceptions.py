@@ -9,6 +9,10 @@ class ResponseError(BaseException):
     ...
 
 
+class WbApiError(ResponseError):
+    ...
+
+
 class OzonProductValidateError(ValidateError):
     ...
 

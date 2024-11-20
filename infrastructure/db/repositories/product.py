@@ -1,13 +1,15 @@
 from dataclasses import dataclass
+from decimal import Decimal
 from typing import cast
 
 from sqlalchemy import Function, Result, column, exists, insert, select, update
 
 from core.repositories.product import IProductRepo
-from core.schemas.product import NewPrices, Product
+from core.schemas.product import Product
 from db import Database
 from infrastructure.db.models.product import ProductModel
 from utils.transform_types import from_dict_to_json
+from utils.types import ProductID
 
 
 @dataclass
@@ -16,13 +18,13 @@ class ProductRepoImpl(IProductRepo):
 
     async def add(self, product: Product) -> Product:
         async with await self.db_conn() as session:
-            user_result: Result = await session.execute(
+            prod_result: Result = await session.execute(
                 insert(ProductModel)
                 .values(ID=product.id, Price=product.price, Img=product.img, Title=product.title)
                 .returning(ProductModel)
             )
-        await session.commit()
-        return cast(Product, Product.model_validate(user_result.scalar()))
+            await session.commit()
+        return cast(Product, Product.model_validate(prod_result.scalar()))
 
     async def get(self, product_id: int) -> Product | None:
         async with await self.db_conn() as session:
@@ -30,7 +32,7 @@ class ProductRepoImpl(IProductRepo):
                 select(ProductModel).where(product_id == ProductModel.ID)
             )
             product_mdl: ProductModel | None = product_selection_res.scalar()
-            return cast(Product | None, Product.model_validate(product_mdl))
+            return Product.model_validate(product_mdl) if product_mdl else None
 
     async def exist(self, product_id: int) -> bool:
         async with await self.db_conn() as session:
@@ -39,7 +41,7 @@ class ProductRepoImpl(IProductRepo):
             )
             return cast(bool, user.scalar())
 
-    async def update_prices(self, new_prices: NewPrices) -> list[Product]:
+    async def update_prices(self, new_prices: dict[ProductID, Decimal]) -> list[Product]:
         async with await self.db_conn() as session:
             subq_product_prices = (
                 select(column('key'), column('value'))

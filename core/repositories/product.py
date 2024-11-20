@@ -1,6 +1,8 @@
 from abc import abstractmethod
+from decimal import Decimal
 
-from core.schemas.product import NewPrices, Product
+from core.schemas.product import Product
+from utils.types import ProductID
 
 
 class IProductRepo:
@@ -17,5 +19,5 @@ class IProductRepo:
         ...
 
     @abstractmethod
-    async def update_prices(self, new_prices: NewPrices) -> list[Product]:
+    async def update_prices(self, new_prices: dict[ProductID, Decimal]) -> list[Product]:
         ...

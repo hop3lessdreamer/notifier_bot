@@ -9,8 +9,15 @@ class BotConfig(BaseSettings):
     LOG_PATH: str
     LOG_LEVEL: str
 
-    DB_PATH: str
+    DB_USER: str
+    DB_PASS: str
     DB_NAME: str
+
+    RABBIT_LOGIN: str
+    RABBIT_PASS: str
+    RABBIT_HOST: str
+    RABBIT_PORT: str
+    RABBIT_MONITOR_PORT: str
 
     API_TOKEN: str
     PRICE_CHECKS_FREQUENCY: int
@@ -24,12 +31,12 @@ class BotConfig(BaseSettings):
     model_config = SettingsConfigDict(env_file='.test.env')
 
     @property
-    def db_url_async(self) -> str:
-        return f'sqlite+aiosqlite:///{self.DB_PATH}/{self.DB_NAME}'
+    def postgres_sync(self) -> str:
+        return f'postgresql+psycopg2://{self.DB_USER}:{self.DB_PASS}@db-p/{self.DB_NAME}'
 
     @property
-    def db_url_sync(self) -> str:
-        return f'sqlite:///{self.DB_PATH}/{self.DB_NAME}'
+    def postgres_async(self) -> str:
+        return f'postgresql+asyncpg://{self.DB_USER}:{self.DB_PASS}@db-p/{self.DB_NAME}'
 
     @property
     def webhook_url(self) -> str:

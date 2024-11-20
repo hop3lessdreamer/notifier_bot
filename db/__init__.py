@@ -1,6 +1,7 @@
 """ Initialization DB module """
 
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
 
 from sqlalchemy import Engine, create_engine
 from sqlalchemy.ext.asyncio import (
@@ -15,22 +16,17 @@ from config import bot_config
 from logger import logger
 
 
+@dataclass(slots=True)
 class Database(ABC):
-    __slots__ = ('async_sessionmaker', '_engine', '_aengine')
-
-    def __init__(self) -> None:
-        self.async_sessionmaker: async_sessionmaker[AsyncSession] | None = None
-        self._aengine: AsyncEngine | None = None
-        self._engine: Engine | None = None
+    _async_sessionmaker: async_sessionmaker[AsyncSession] | None = None
+    _aengine: AsyncEngine | None = None
+    _engine: Engine | None = None
 
     async def __call__(self) -> AsyncSession:
-        if not self.async_sessionmaker:
+        if not self._async_sessionmaker:
             raise ValueError('async_sessionmaker not available. Run setup() first.')
 
-        # async with self.async_sessionmaker() as session:
-        #     async with session.begin():
-        #         yield session
-        return self.async_sessionmaker()
+        return self._async_sessionmaker()
 
     @property
     @abstractmethod
@@ -47,22 +43,23 @@ class Database(ABC):
         raise NotImplementedError
 
 
-class SQLiteDatabase(Database):
+@dataclass
+class PostgresDB(Database):
     @property
     def engine(self) -> Engine:
         if self._engine is None:
-            self._engine = create_engine(bot_config.db_url_sync, echo=True)
+            self._engine = create_engine(bot_config.postgres_sync, echo=True)
         return self._engine
 
     @property
     def aengine(self) -> AsyncEngine:
         if self._aengine is None:
-            self._aengine = create_async_engine(bot_config.db_url_async, echo=True)
-            logger.info(f'init db connection {bot_config.db_url_async}')
+            self._aengine = create_async_engine(bot_config.postgres_async, echo=True)
+            logger.info(f'init db connection {bot_config.postgres_async}')
         return self._aengine
 
     def setup(self) -> None:
-        self.async_sessionmaker = async_sessionmaker(
+        self._async_sessionmaker = async_sessionmaker(
             bind=self.aengine, expire_on_commit=False, class_=AsyncSession
         )
 
@@ -78,6 +75,5 @@ class SQLiteDatabase(Database):
         return sessionmaker(bind=self.engine)()
 
 
-db: SQLiteDatabase = SQLiteDatabase()
+db: PostgresDB = PostgresDB()
 db.setup()
-# session: AsyncIterator[AsyncSession] = db()

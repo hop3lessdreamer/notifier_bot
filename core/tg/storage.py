@@ -2,37 +2,47 @@
 
 from typing import Any
 
-from aiogram.contrib.fsm_storage.memory import MemoryStorage
-from aiogram.dispatcher import FSMContext
+from aiogram.fsm.context import FSMContext
+from aiogram.fsm.storage.memory import MemoryStorage, StorageKey
 
-from core.wb.wb_parser import WbProduct
-from db.queries import SubscriptionsInfo
+from core.schemas.product import Product
+from core.schemas.sub_product import SubProduct, SubProductCollection
 
 
 class Storage(MemoryStorage):
-    async def get_product_id(self, user: int, chat: int) -> int | None:
-        data: dict[str, Any] = await self.get_data(user=user, chat=chat)
+    PRODUCT_KEY: str = 'product'
+    SUBS_KEY: str = 'subs'
+
+    async def get_product_id(self, key: StorageKey) -> int | None:
+        data: dict[str, Any] = await self.get_data(key)
         return data.get('product_id')
 
-    async def get_subs_info(self, user: int, chat: int) -> SubscriptionsInfo:
-        data: dict[str, Any] = await self.get_data(user=user, chat=chat)
-        return data.get('subs_info') or SubscriptionsInfo()
+    async def get_subs_info(self, key: StorageKey) -> SubProductCollection:
+        data: dict[str, SubProductCollection] = await self.get_data(key)
+        return data[self.SUBS_KEY]
 
-    async def get_wb_product(self, user: int, chat: int) -> WbProduct | None:
-        data: dict[str, Any] = await self.get_data(user=user, chat=chat)
-        return data.get('wb_product')
+    async def get_product(self, key: StorageKey) -> Product:
+        data: dict[str, Any] = await self.get_data(key)
+        product: Product | None = data.get(self.PRODUCT_KEY)
+        if not product:
+            raise ValueError('Не удалось получить информацию о продукте из хранилища!')
+        return product
 
-    async def write_wb_product(self, user: int, chat: int, wb_product: WbProduct) -> None:
-        await self.update_data(user=user, chat=chat, wb_product=wb_product)
+    async def write_product(self, key: StorageKey, product: Product) -> None:
+        await self.set_data(key, {self.PRODUCT_KEY: product})
 
-    async def init_subs(self, user: int, chat: int, subs_info: SubscriptionsInfo) -> None:
-        await self.update_data(user=user, chat=chat, subs_info=subs_info)
+    async def init_subs(
+        self, key: StorageKey, subs: list[SubProduct], sub_cnt: int
+    ) -> SubProductCollection:
+        sub_collection = SubProductCollection(subs, sub_cnt)
+        await self.set_data(key, {self.SUBS_KEY: sub_collection})
+        return sub_collection
 
-    async def write_subs(self, user: int, chat: int, subs_info: SubscriptionsInfo) -> None:
-        await self.init_subs(user, chat, subs_info)
+    async def write_subs(self, key: StorageKey, subs: SubProductCollection) -> None:
+        await self.set_data(key, {self.SUBS_KEY: subs})
 
 
 class Context(FSMContext):
-    def __init__(self, storage: Storage, chat: int, user: int):
+    def __init__(self, storage: Storage, key: StorageKey):
         self.storage: Storage = storage
-        super().__init__(self.storage, chat, user)
+        super().__init__(self.storage, key)

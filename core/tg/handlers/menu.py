@@ -1,46 +1,41 @@
-from aiogram.dispatcher import FSMContext
+from aiogram import F, Router
+from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 
-from core.tg.handlers import BaseHandler
+from core.schemas.user import User
+from core.services.subscription import SubscriptionService
+from core.services.user import UserService
 from core.tg.keyboards import MenuKeyboard, MenuKeyboardWEmptySubs
-from core.tg.message_texts import Messages as Msg
+from core.tg.message_texts import Messages
 from core.tg.notifier_state import NotifierState
 
+router = Router(name='menu')
 
-class PickMenu(BaseHandler):
-    def register_handlers(self) -> None:
-        self.dp.register_callback_query_handler(
-            self.menu, text='menu', state=NotifierState.waiting_action_w_product_for_exist.state
-        )
-        self.dp.register_callback_query_handler(
-            self.menu_from_choosing_product,
-            text='menu',
-            state=NotifierState.waiting_product_id.state,
-        )
-        self.dp.register_callback_query_handler(
-            self.menu_from_choosing_product,
-            text='menu',
-            state=NotifierState.waiting_product_id_for_del_subscribe.state,
-        )
-        self.dp.register_message_handler(self.menu_command, commands='menu')
 
-    @staticmethod
-    async def menu(call: CallbackQuery, state: FSMContext) -> None:
-        await call.message.edit_reply_markup(reply_markup=MenuKeyboard())
-        await state.finish()
+@router.callback_query(NotifierState.waiting_action_w_product_for_exist, F.data == 'menu')
+async def menu(call: CallbackQuery, state: FSMContext) -> None:
+    await call.message.edit_reply_markup(reply_markup=MenuKeyboard())
+    await state.clear()
 
-    async def menu_command(self, message: Message, state: FSMContext) -> None:
-        #   create user if not exist
-        await self.db.create_user(state.user, message.chat.id)
 
-        subs_cnt: int = await self.db.get_cnt_subscription_by_user(state.user)
-        if not subs_cnt:
-            await message.answer(Msg.CHOSE_ACTION, reply_markup=MenuKeyboardWEmptySubs())
-            return
+@router.message(F.text == '/menu')
+async def menu_command(
+    message: Message, state: FSMContext, user_service: UserService, sub_service: SubscriptionService
+) -> None:
+    user = User(ID=state.key.user_id, ChatID=state.key.chat_id, TZOffset=-180)
+    #   create user if not exist
+    await user_service.create_user(user)
 
-        await message.answer(Msg.CHOSE_ACTION, reply_markup=MenuKeyboard())
+    subs_cnt: int = await sub_service.sub_cnt_by_user(user.id)
+    if not subs_cnt:
+        await message.answer(Messages.CHOSE_ACTION, reply_markup=MenuKeyboardWEmptySubs())
+        return
 
-    @staticmethod
-    async def menu_from_choosing_product(call: CallbackQuery, state: FSMContext) -> None:
-        await call.message.edit_text(Msg.CHOSE_ACTION, reply_markup=MenuKeyboard())
-        await state.finish()
+    await message.answer(Messages.CHOSE_ACTION, reply_markup=MenuKeyboard())
+
+
+@router.callback_query(NotifierState.waiting_product_id_for_del_subscribe, F.data == 'menu')
+@router.callback_query(NotifierState.waiting_product_id, F.data == 'menu')
+async def menu_from_choosing_product(call: CallbackQuery, state: FSMContext) -> None:
+    await call.message.edit_text(Messages.CHOSE_ACTION, reply_markup=MenuKeyboard())
+    await state.clear()

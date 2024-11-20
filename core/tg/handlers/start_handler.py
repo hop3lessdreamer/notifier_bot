@@ -1,20 +1,21 @@
-from aiogram.types import InlineKeyboardMarkup, Message
+from typing import cast
 
-from core.tg.buttons import AVAILABLE_MARKET_PLACES
-from core.tg.handlers.base_handler import BaseHandler
+from aiogram import F, Router
+from aiogram.types import Message
+from aiogram.types import User as TGUser
+
+from core.schemas.user import User
+from core.services.user import UserService
+from core.tg.keyboards import MarketPlaceKeyboard
 from core.tg.message_texts import Messages as Msg
 
+router = Router(name='start_bot_router')
 
-class StartHandler(BaseHandler):
-    def register_handlers(self) -> None:
-        self.dp.register_message_handler(self.start_message, commands='start')
 
-    async def start_message(self, message: Message) -> None:
-        await message.answer(Msg.HELLO)
-
-        await self.db.create_user(message.from_user.id, message.chat.id)
-
-        keyboard = InlineKeyboardMarkup()
-        keyboard.add(*AVAILABLE_MARKET_PLACES)
-
-        await message.answer(Msg.CHOSE_MARKET_PLACE, reply_markup=keyboard)
+@router.message(F.text == '/start')
+async def start_message(message: Message, user_service: UserService) -> None:
+    await message.answer(Msg.HELLO)
+    await user_service.create_user(
+        User(ID=cast(TGUser, message.from_user).id, ChatID=message.chat.id, TZOffset=-180)
+    )
+    await message.answer(Msg.CHOSE_MARKET_PLACE, reply_markup=MarketPlaceKeyboard())

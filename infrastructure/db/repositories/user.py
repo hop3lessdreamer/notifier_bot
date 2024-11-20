@@ -1,4 +1,4 @@
-from abc import abstractmethod
+from dataclasses import dataclass
 from typing import cast
 
 from sqlalchemy import Result, exists, insert, select
@@ -9,10 +9,10 @@ from db import Database
 from infrastructure.db.models.user import UserModel
 
 
+@dataclass
 class UserRepoImpl(IUserRepo):
     db_conn: Database
 
-    @abstractmethod
     async def add(self, user: User) -> User:
         async with await self.db_conn() as session:
             user_result: Result = await session.execute(
@@ -20,17 +20,15 @@ class UserRepoImpl(IUserRepo):
                 .values(ID=user.id, ChatID=user.chat_id, TZOffset=user.tz_offset)
                 .returning(UserModel)
             )
-        await session.commit()
+            await session.commit()
         return cast(User, User.model_validate(user_result.scalar()))
 
-    @abstractmethod
     async def get(self, user_id: int) -> User | None:
         async with await self.db_conn() as session:
             user: Result = await session.execute(select(UserModel).where(user_id == UserModel.ID))
             user_mdl: UserModel | None = user.scalar()
-            return cast(User | None, User.model_validate(user_mdl))
+            return User.model_validate(user_mdl) if user_mdl else None
 
-    @abstractmethod
     async def exist(self, user_id: int) -> bool:
         async with await self.db_conn() as session:
             user: Result = await session.execute(

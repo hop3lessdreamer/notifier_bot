@@ -1,5 +1,6 @@
 """ Initiation logger """
 import functools
+import sys
 from collections.abc import Callable
 from typing import Any, get_type_hints
 
@@ -10,29 +11,16 @@ from config import bot_config
 LOG_FORMAT = '>>>{time: DD.MM.YY HH:mm:ss.SS} | {level} | {function} | {message}'
 
 
-class MockLogger:
-    def info(self, __message: str, *args: Any, **kwargs: Any) -> None:
-        ...
-
-    def warning(self, __message: str, *args: Any, **kwargs: Any) -> None:
-        ...
-
-    def error(self, __message: str, *args: Any, **kwargs: Any) -> None:
-        ...
-
-    def catch(self, *args: Any, **kwargs: Any) -> None:
-        ...
-
-
 def create_logger() -> loguru_logger:  # type: ignore
     """Create and return Logger"""
-
-    if not bot_config.LOG_PATH or not bot_config.LOG_LEVEL:
-        return MockLogger()
+    loguru_logger.remove()
+    if not bot_config.LOG_PATH:
+        loguru_logger.add(sys.stdout, level='DEBUG')
+        return loguru_logger
 
     loguru_logger.add(
         bot_config.LOG_PATH,
-        level=bot_config.LOG_LEVEL,
+        level=bot_config.LOG_LEVEL or 'DEBUG',
         format=LOG_FORMAT,
         enqueue=True,
         diagnose=True,

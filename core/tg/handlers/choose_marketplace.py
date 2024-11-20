@@ -1,16 +1,15 @@
+from aiogram import F, Router
 from aiogram.types import CallbackQuery, InlineKeyboardMarkup
 
 from core.tg.buttons import AVAILABLE_MARKET_PLACES
-from core.tg.handlers import BaseHandler
-from core.tg.message_texts import Messages as Msg
+from core.tg.message_texts import Messages
+
+router = Router(name='re_choose_mp_router')
 
 
-class ReChooseMP(BaseHandler):
-    def register_handlers(self) -> None:
-        self.dp.register_callback_query_handler(self.choose_mp, text='choose_marketplace')
-
-    @staticmethod
-    async def choose_mp(call: CallbackQuery) -> None:
-        keyboard = InlineKeyboardMarkup()
-        keyboard.add(*AVAILABLE_MARKET_PLACES)
-        await call.message.edit_text(Msg.CHOSE_MARKET_PLACE, reply_markup=keyboard)
+@router.callback_query(F.data == 'choose_marketplace')
+async def choose_mp(call: CallbackQuery) -> None:
+    await call.message.edit_text(
+        Messages.CHOSE_MARKET_PLACE,
+        reply_markup=InlineKeyboardMarkup(inline_keyboard=[list(AVAILABLE_MARKET_PLACES)]),
+    )

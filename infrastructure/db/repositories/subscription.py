@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from datetime import datetime
 from decimal import Decimal
 from typing import cast
@@ -11,6 +12,7 @@ from db import Database
 from infrastructure.db.models.user_product import UserProductModel
 
 
+@dataclass
 class SubscriptionRepoImpl(ISubscriptionRepo):
     db_conn: Database
 
@@ -79,4 +81,5 @@ class SubscriptionRepoImpl(ISubscriptionRepo):
                 .values(PriceThreshold=threshold, Changed=datetime.utcnow())
                 .returning(UserProductModel)
             )
+            await session.commit()
             return cast(UserProduct, UserProduct.model_validate(query_result.scalar()))

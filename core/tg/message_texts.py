@@ -6,9 +6,8 @@ from _decimal import Decimal
 from aiogram.utils import markdown as fmt
 
 from core.schemas.product import Product
+from core.schemas.sub_product import SubProduct, SubProductCollection
 from core.wb import form_url_from_product_id
-from core.wb.wb_parser import WbProduct
-from db.queries import Subscription, SubscriptionsInfo
 
 
 class Messages:
@@ -38,7 +37,7 @@ class Messages:
         )
 
     @staticmethod
-    def current_product_price_w_exist_subscription_wo_thr(subscription: Subscription) -> str:
+    def current_product_price_w_exist_subscription_wo_thr(subscription: SubProduct) -> str:
         return typing.cast(
             str,
             fmt.text(
@@ -51,7 +50,7 @@ class Messages:
         )
 
     @staticmethod
-    def current_product_price_w_exist_subscription_w_thr(subscription: Subscription) -> str:
+    def current_product_price_w_exist_subscription_w_thr(subscription: SubProduct) -> str:
         return typing.cast(
             str,
             fmt.text(
@@ -60,7 +59,7 @@ class Messages:
                 f' - {subscription.product.price} (без учета пользовательских скидок).\n',
                 f'Товар уже добавлен в отслеживаемые,'
                 f' вам придет уведомление когда цена станет - '
-                f'{str(subscription.user_product.price_threshold)}.',
+                f'{subscription.subscription.price_threshold}.',
                 sep='',
             ),
         )
@@ -92,7 +91,7 @@ class Messages:
         )
 
     @staticmethod
-    def product_added_w_threshold(product: WbProduct, threshold: Decimal) -> str:
+    def product_added_w_threshold(product: Product, threshold: Decimal) -> str:
         return typing.cast(
             str,
             fmt.text(
@@ -119,13 +118,13 @@ class Messages:
 
     @staticmethod
     def product_added_w_threshold_in_percent(
-        wb_product: WbProduct, price_threshold: float | Decimal
+        product: Product, price_threshold: float | Decimal
     ) -> str:
         return typing.cast(
             str,
             fmt.text(
                 'Товар ',
-                fmt.hbold(f'"{wb_product.title}"'),
+                fmt.hbold(f'"{product.title}"'),
                 ' добавлен в отслеживаемые.',
                 f'\nБот уведомит вас при снижении цены до значения -' f' {str(price_threshold)}.',
                 sep='',
@@ -157,20 +156,20 @@ class Messages:
         )
 
     @staticmethod
-    def subscription(subs_info: SubscriptionsInfo) -> str:
-        sub: Subscription | None = subs_info.sub_by_cur_pos
-        if not sub:
+    def subscription(subprod_collection: SubProductCollection) -> str:
+        subprod: SubProduct | None = subprod_collection.sub_by_cur_pos
+        if not subprod:
             return Messages.subscriptions_not_found()
 
-        if sub.user_product.price_threshold == sub.product.price:
+        if subprod.subscription.price_threshold == subprod.product.price:
             return typing.cast(
                 str,
                 fmt.text(
                     f'Отслеживаемый товар '
-                    f'{abs(subs_info.current_position) + 1}/{subs_info.subs_cnt_by_user}\n',
-                    fmt.hbold(f'"{sub.product.title}"'),
+                    f'{abs(subprod_collection.cur_pos) + 1}/{subprod_collection.total_sub_cnt}\n',
+                    fmt.hbold(f'"{subprod.product.title}"'),
                     ' - ',
-                    f'уведомление придет при снижении цены ' f'{str(sub.product.price)}',
+                    f'уведомление придет при снижении цены ' f'{str(subprod.product.price)}',
                     sep='',
                 ),
             )
@@ -179,11 +178,11 @@ class Messages:
             str,
             fmt.text(
                 f'Отслеживаемый товар '
-                f'{abs(subs_info.current_position) + 1}/{subs_info.subs_cnt_by_user}\n',
-                fmt.hbold(f'"{sub.product.title}"'),
+                f'{abs(subprod_collection.cur_pos) + 1}/{subprod_collection.total_sub_cnt}\n',
+                fmt.hbold(f'"{subprod.product.title}"'),
                 ' - ',
                 f'уведомление придет при снижении цены до '
-                f'{str(sub.user_product.price_threshold)}',
+                f'{str(subprod.subscription.price_threshold)}',
                 sep='',
             ),
         )
@@ -199,7 +198,7 @@ class Messages:
         )
 
     @staticmethod
-    def info_about_deletion(deleted_sub: Subscription) -> str:
+    def info_about_deletion(deleted_sub: SubProduct) -> str:
         return typing.cast(
             str,
             fmt.text(

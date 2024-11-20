@@ -1,24 +1,29 @@
-from core.tg.handlers.base_handler import BaseHandler
-from core.tg.handlers.choose_action_handler import ChooseActionHandler
-from core.tg.handlers.choose_marketplace import ReChooseMP
-from core.tg.handlers.delete_subscriptions_handler import DeleteSubscriptionHandlers
-from core.tg.handlers.menu import PickMenu
-from core.tg.handlers.on_notify_handler import OnNotifyHandler
-from core.tg.handlers.product_handler import ProductHandler
-from core.tg.handlers.show_subscriptions_handler import ShowSubscriptionsHandlers
-from core.tg.handlers.start_handler import StartHandler
-from core.tg.handlers.subscription_existing_handler import SubscriptionExistingHandlers
-from core.tg.handlers.subscription_handler import SubscriptionHandlers
+from aiogram import Router
 
-HANDLERS: tuple[type[BaseHandler], ...] = (
-    StartHandler,
-    ChooseActionHandler,
-    ReChooseMP,
-    ProductHandler,
-    SubscriptionHandlers,
-    SubscriptionExistingHandlers,
-    ShowSubscriptionsHandlers,
-    DeleteSubscriptionHandlers,
-    PickMenu,
-    OnNotifyHandler,
+from core.tg.handlers import (
+    choose_action_handler,
+    choose_marketplace,
+    delete_subscriptions_handler,
+    menu,
+    on_notify_handler,
+    product_handler,
+    show_subscriptions_handler,
+    start_handler,
+    subscription_existing_handler,
+    subscription_handler,
 )
+
+
+def get_main_router() -> Router:
+    router = Router()
+    router.include_router(choose_action_handler.router)
+    router.include_router(choose_marketplace.router)
+    router.include_router(delete_subscriptions_handler.router)
+    router.include_router(menu.router)
+    router.include_router(on_notify_handler.router)
+    router.include_router(product_handler.router)
+    router.include_router(show_subscriptions_handler.router)
+    router.include_router(start_handler.router)
+    router.include_router(subscription_existing_handler.router)
+    router.include_router(subscription_handler.router)
+    return router

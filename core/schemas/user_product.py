@@ -20,7 +20,7 @@ class UserProduct(BaseModel):
 
     @field_validator('price_threshold', mode='after')
     @classmethod
-    def set_precision_to_price(cls, price_threshold: Decimal) -> Decimal | None:
+    def set_precision_to_price(cls, price_threshold: Decimal) -> Decimal:
         return get_decimal(price_threshold, 2)
 
 

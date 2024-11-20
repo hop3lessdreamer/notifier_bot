@@ -1,103 +1,93 @@
-from decimal import Decimal
-
-from aiogram.types import CallbackQuery, InlineKeyboardMarkup, Message
+from aiogram import F, Router
+from aiogram.types import CallbackQuery, Message
 
 from core.schemas.product import Product
-from core.tg.buttons import (
-    ACTIONS_W_PRODUCT_IF_EXIST_SUBSCRIPTION_AND_CHOSEN_W_THR,
-    ACTIONS_W_PRODUCT_IF_EXIST_SUBSCRIPTION_AND_CHOSEN_WO_THR,
-    MENU_BTN,
-)
+from core.schemas.sub_product import SubProduct
+from core.services.subscription import SubscriptionService
+from core.services.wb import WbService
 from core.tg.files import transferring_file
-from core.tg.handlers.base_handler import BaseHandler
-from core.tg.keyboards import ProductKeyboard, RowKeyboard
-from core.tg.message_texts import Messages as Msg
+from core.tg.keyboards import (
+    MenuBtnKeyboard,
+    ProductActionsWOThr,
+    ProductActionsWThr,
+    ProductKeyboard,
+)
+from core.tg.message_texts import Messages
 from core.tg.notifier_state import NotifierState
 from core.tg.storage import Context
-from core.wb.wb_parser import WbParser, WbProduct
-from db.queries import Subscription
-from logger import loguru_logger
-from utils.transform_types import get_decimal
-from utils.validators import validate_wb_product_id
+from logger import logger as loguru_logger
+
+router = Router(name='product_router')
 
 
-class ProductHandler(BaseHandler):
-    def register_handlers(self) -> None:
-        self.dp.register_callback_query_handler(self.ask_product_id, text='ask_product_id')
-        self.dp.register_message_handler(
-            self.ask_action_with_product, state=NotifierState.waiting_product_id.state
+@router.callback_query(F.data == 'ask_product_id')
+async def ask_product_id2(call: CallbackQuery, state: Context) -> None:
+    await state.set_state(NotifierState.waiting_product_id.state)
+    await call.message.edit_text(Messages.PRINT_PRODUCT, reply_markup=MenuBtnKeyboard())
+    await call.answer()
+
+
+@router.message(NotifierState.waiting_product_id)
+async def ask_action_with_product(
+    message: Message, state: Context, sub_service: SubscriptionService, wb_service: WbService
+) -> None:
+    if not message.text:
+        loguru_logger.warning(f'Пустое сообщение ({message.text})!')
+        await message.answer(Messages.INVALID_PRINTED_PRODUCT)
+        await state.clear()
+        return
+
+    product_id: int | None = sub_service.product_service.validate_product_id(message.text)
+    if product_id is None:
+        loguru_logger.warning(f'Некорректный ввод товара ({message.text})!')
+        await message.answer(Messages.INVALID_PRINTED_PRODUCT)
+        await state.clear()
+        return
+
+    product: Product | None = await wb_service.try_get_product(product_id)
+    if product is None:
+        await state.clear()
+        raise Exception(f'Не удалось прочитать товар "{product_id}"!')
+
+    subscription: SubProduct | None = await sub_service.get_sub_by_user_product(
+        user_id=state.key.user_id, product_id=product_id
+    )
+
+    #   Нет подсписки - предлодим что с ней сделать
+    if subscription is None:
+        await message.answer(
+            text=Messages.current_product_price(product),
+            reply_markup=ProductKeyboard(),
         )
 
-    @staticmethod
-    async def ask_product_id(call: CallbackQuery, state: Context) -> None:
-        """"""
-        keyboard = InlineKeyboardMarkup()
-        keyboard.add(MENU_BTN)
+        await state.storage.write_product(state.key, product)
+        await state.set_state(NotifierState.waiting_action_w_product.state)
+        return
 
-        await state.set_state(NotifierState.waiting_product_id.state)
+    #   Уже есть подписка - показываем ее
+    if subscription.subscription and subscription.subscription.added:
+        await _show_sub(message, subscription)
 
-        await call.message.edit_text(Msg.PRINT_PRODUCT, reply_markup=keyboard)
-        await call.answer()
+        await state.storage.write_product(state.key, product)
+        await state.set_state(NotifierState.waiting_action_w_product_for_exist.state)
+        return
 
-    async def ask_action_with_product(self, message: Message, state: Context) -> None:
-        """"""
 
-        product_id: int | None = validate_wb_product_id(message.text)
-        if product_id is None:
-            loguru_logger.warning(f'Некорректный ввод товара ({message.text})!')
-            await message.answer(Msg.INVALID_PRINTED_PRODUCT)
-            return
-
-        products: dict[int, WbProduct] = await WbParser([product_id]).get_wb_products()
-        wb_product: WbProduct | None = products.get(product_id)
-        if wb_product is None or wb_product.empty:
-            raise Exception(f'Не удалось прочитать товар "{product_id}"!')
-
-        subscription: Subscription | None = await self.db.get_subscription_by_user_n_product(
-            user_id=message.from_user.id, product_id=product_id
-        )
-
-        #   Нет подсписки - добавим
-        #   FIXME: Убрать костыль с созданием Product
-        if subscription is None:
-            price: Decimal | None = get_decimal(wb_product.price, 2)
-            if price is None:
-                raise ValueError('Ошибка валидации цены на товар!')
-
-            await message.answer(
-                text=Msg.current_product_price(
-                    Product(ID=wb_product.id, Price=price, Img=b'', Title=wb_product.title)
-                ),
-                reply_markup=ProductKeyboard(),
+async def _show_sub(msg: Message, sub: SubProduct) -> None:
+    #   Установлен порог уведомления
+    if sub.subscription.price_threshold:
+        with transferring_file(sub.product.img) as photo:
+            await msg.answer_photo(
+                photo=photo,
+                caption=Messages.current_product_price_w_exist_subscription_w_thr(sub),
+                reply_markup=ProductActionsWThr(),
             )
-
-            await state.storage.write_wb_product(state.user, state.chat, wb_product)
-            await state.set_state(NotifierState.waiting_action_w_product.state)
             return
 
-        #   Уже есть подписка - показываем ее
-        if subscription.user_product and subscription.user_product.added:
-            #   Установлен порог уведомления
-            if subscription.user_product.price_threshold:
-                with transferring_file(subscription.product.img) as photo:
-                    await message.answer_photo(
-                        photo=photo,
-                        caption=Msg.current_product_price_w_exist_subscription_w_thr(subscription),
-                        reply_markup=RowKeyboard(
-                            buttons=ACTIONS_W_PRODUCT_IF_EXIST_SUBSCRIPTION_AND_CHOSEN_W_THR
-                        ),
-                    )
-            #   Уведомление при любом снижении
-            else:
-                with transferring_file(subscription.product.img) as photo:
-                    await message.answer_photo(
-                        photo=photo,
-                        caption=Msg.current_product_price_w_exist_subscription_wo_thr(subscription),
-                        reply_markup=RowKeyboard(
-                            buttons=ACTIONS_W_PRODUCT_IF_EXIST_SUBSCRIPTION_AND_CHOSEN_WO_THR
-                        ),
-                    )
-
-            await state.storage.write_wb_product(state.user, state.chat, wb_product)
-            await state.set_state(NotifierState.waiting_action_w_product_for_exist.state)
-            return
+    #   Уведомление при любом снижении
+    with transferring_file(sub.product.img) as photo:
+        await msg.answer_photo(
+            photo=photo,
+            caption=Messages.current_product_price_w_exist_subscription_wo_thr(sub),
+            reply_markup=ProductActionsWOThr(),
+        )

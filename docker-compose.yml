@@ -11,14 +11,38 @@ services:
 #    volumes:
 #      - "./nginx/default.conf:/etc/nginx/conf.d/default.conf"
 
-  db:
-    tty: true
-    image: keinos/sqlite3:latest
+  db-p:
+    image: postgres:17
     restart: always
     shm_size: 256mb
+    # network_mode: host
+    expose:
+      - 5432
     ports:
-      - "6432:6432"
-    user: root
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASS}
+      POSTGRES_DB: ${DB_NAME}
+      PGDATA: /data/postgres
+    volumes:
+      - pg_data:/data/postgres
+
+  rabbit:
+    image: rabbitmq:4.0-management-alpine
+    expose:
+      - 5672
+    environment:
+      - RABBITMQ_DEFAULT_USER=${RABBIT_LOGIN}
+      - RABBITMQ_DEFAULT_PASS=${RABBIT_PASS}
+    ports:
+      - "${RABBIT_PORT}:5672"
+      - "${RABBIT_MONITOR_PORT}:15672"
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 3s
+      timeout: 5s
+      retries: 3
 
   bot:
     build:
@@ -28,10 +52,26 @@ services:
       - DB_PATH=/bot/
     volumes:
       - ".:/bot"
-    network_mode: host
+    # network_mode: host
     command:
       /bin/sh -c "poetry run alembic upgrade head
-      && poetry run python main.py"
+      && poetry run python -Xfrozen_modules=off main.py"
     depends_on:
-      - db
+      - rabbit
+      - db-p
       - nginx
+
+  scheduler:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - rabbit
+    command:
+      /bin/sh -c "poetry run taskiq scheduler infrastructure.scheduler:scheduler"
+    volumes:
+      - ".:/bot"
+    restart: always
+
+volumes:
+  pg_data:

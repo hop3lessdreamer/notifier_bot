@@ -1,6 +1,6 @@
-from typing import TypeAlias, TypeVar
+from typing import TypeAlias
 
-b64 = TypeVar('b64', bound=bytes)
+b64: TypeAlias = bytes
 
 UserID: TypeAlias = int
 ProductID: TypeAlias = int

@@ -1,150 +1,141 @@
+from aiogram import F, Router
 from aiogram.types import CallbackQuery, InputMediaPhoto
 
-from core.tg.buttons import (
-    ACTIONS_W_PRODUCT_IF_EXIST_SUBSCRIPTION_AND_CHOSEN_W_THR,
-    ACTIONS_W_PRODUCT_IF_EXIST_SUBSCRIPTION_AND_CHOSEN_WO_THR,
-)
+from core.schemas.sub_product import SubProduct, SubProductCollection
+from core.services.subscription import SubscriptionService
 from core.tg.files import transferring_file
-from core.tg.handlers.base_handler import BaseHandler
-from core.tg.keyboards import MenuKeyboard, RowKeyboard, SubsNavigationKeyboard
+from core.tg.keyboards import (
+    MenuKeyboard,
+    ProductActionsWOThr,
+    ProductActionsWThr,
+    SubsNavigationKeyboard,
+)
 from core.tg.message_texts import Messages as Msg
 from core.tg.notifier_state import NotifierState
 from core.tg.storage import Context
-from db.queries import Subscription, SubscriptionsInfo
-from logger import loguru_logger
+from logger import logger as loguru_logger
+
+router = Router(name='show_sub_router')
 
 
-class ShowSubscriptionsHandlers(BaseHandler):
-    def register_handlers(self) -> None:
-        self.dp.register_callback_query_handler(self.show_subscriptions, text='show_subscriptions')
-        self.dp.register_callback_query_handler(self.open_product_card, text='open_product_card')
-        self.dp.register_callback_query_handler(self.delete_subscribe, text='delete_subscribe')
-        self.dp.register_callback_query_handler(self.change_threshold, text='change_threshold')
-        self.dp.register_callback_query_handler(self.prev_product_card, text='prev_product')
-        self.dp.register_callback_query_handler(self.next_product_card, text='next_product')
-        self.dp.register_callback_query_handler(self.empty_callback, text='disabled')
+@router.callback_query(F.data == 'disabled')
+def empty_callback() -> None:
+    ...
 
-    async def empty_callback(self, _call: CallbackQuery) -> None:
-        ...
 
-    async def show_subscriptions(self, call: CallbackQuery, state: Context) -> None:
-        subscriptions_info: SubscriptionsInfo = await self.db.get_subscriptions_by_user(state.user)
+@router.callback_query(F.data == 'show_subscriptions')
+async def show_subscriptions(
+    call: CallbackQuery, state: Context, sub_service: SubscriptionService
+) -> None:
+    sub_collection: SubProductCollection = await state.storage.init_subs(
+        state.key,
+        await sub_service.get_sub_by_user(state.key.user_id),
+        await sub_service.sub_cnt_by_user(state.key.user_id),
+    )
+    if sub_collection.empty:
+        await call.message.answer(Msg.subscriptions_not_found(), reply_markup=MenuKeyboard())
+    else:
+        if sub_collection.first_sub is None:
+            raise ValueError('Не удалось получить первую подписку!')
+        with transferring_file(sub_collection.first_sub.product.img) as photo:
+            await call.message.answer_photo(
+                photo=photo,
+                caption=Msg.subscription(sub_collection),
+                reply_markup=SubsNavigationKeyboard(subs=sub_collection),
+            )
 
-        await state.storage.init_subs(state.user, state.chat, subscriptions_info)
+    await call.answer()
 
-        if subscriptions_info.empty:
-            await call.message.answer(Msg.subscriptions_not_found(), reply_markup=MenuKeyboard())
-        else:
-            first_sub: Subscription | None = subscriptions_info.first_sub
-            if first_sub is None:
-                raise ValueError('Не удалось получить первую подписку!')
-            with transferring_file(first_sub.product.img) as photo:
-                await call.message.answer_photo(
-                    photo=photo,
-                    caption=Msg.subscription(subscriptions_info),
-                    reply_markup=SubsNavigationKeyboard(
-                        subs=subscriptions_info, product_id=first_sub.product.id
-                    ),
-                )
 
-        await call.answer()
+@router.callback_query(F.data == 'open_product_card')
+async def open_product_card(_call: CallbackQuery, _state: Context) -> None:
+    ...
 
-    async def open_product_card(self, _call: CallbackQuery, _state: Context) -> None:
-        ...
 
-    async def delete_subscribe(self, call: CallbackQuery, state: Context) -> None:
-        subs_info: SubscriptionsInfo = await state.storage.get_subs_info(state.user, state.chat)
-        if subs_info.empty or not subs_info.sub_by_cur_pos:
-            await call.message.answer(Msg.subscriptions_not_found(), reply_markup=MenuKeyboard())
-            loguru_logger.error('Не удалось получить подписки из state.storage!')
-            return
+@router.callback_query(F.data == 'delete_subscribe')
+async def delete_subscribe(
+    call: CallbackQuery, state: Context, sub_service: SubscriptionService
+) -> None:
+    sub_collection: SubProductCollection = await state.storage.get_subs_info(state.key)
+    if not sub_collection.sub_by_cur_pos:
+        await call.message.answer(Msg.subscriptions_not_found(), reply_markup=MenuKeyboard())
+        loguru_logger.error('Не удалось получить подписки из state.storage!')
+        return
 
-        await self.db.delete_subscription(
-            user_id=subs_info.sub_by_cur_pos.user_product.user_id,
-            product_id=subs_info.sub_by_cur_pos.product.id,
+    await sub_service.delete_sub(
+        user_id=state.key.user_id,
+        product_id=sub_collection.sub_by_cur_pos.product.id,
+    )
+    deleted_sub: SubProduct = sub_collection.del_sub_by_cur_pos()
+
+    with transferring_file(deleted_sub.product.img) as photo:
+        await call.message.edit_media(
+            InputMediaPhoto(media=photo, caption=Msg.subscription(sub_collection)),
+            reply_markup=SubsNavigationKeyboard(
+                subs=sub_collection, product_id=deleted_sub.product.id
+            ),
+        )
+    await call.message.answer(Msg.info_about_deletion(deleted_sub))
+    await state.storage.write_subs(state.key, sub_collection)
+
+
+@router.callback_query(F.data == 'change_threshold')
+async def change_threshold(call: CallbackQuery, state: Context) -> None:
+    subprod_collection: SubProductCollection = await state.storage.get_subs_info(state.key)
+    if subprod_collection.sub_by_cur_pos.subscription.price_threshold:
+        await call.message.edit_caption(
+            caption=Msg.current_product_price_w_exist_subscription_w_thr(
+                subprod_collection.sub_by_cur_pos
+            ),
+            reply_markup=ProductActionsWThr(),
         )
 
-        deleted_sub: Subscription = subs_info.del_sub_by_cur_pos()
-
-        with transferring_file(deleted_sub.product.img) as photo:
-            await call.message.edit_media(
-                InputMediaPhoto(media=photo, caption=Msg.subscription(subs_info)),
-                reply_markup=SubsNavigationKeyboard(
-                    subs=subs_info, product_id=deleted_sub.product.id
-                ),
-            )
-        await call.message.answer(Msg.info_about_deletion(deleted_sub))
-
-        await state.storage.write_subs(state.user, state.chat, subs_info)
-
-    @staticmethod
-    async def change_threshold(call: CallbackQuery, state: Context) -> None:
-        subs_info: SubscriptionsInfo = await state.storage.get_subs_info(state.user, state.chat)
-        if subs_info.empty or not subs_info.sub_by_cur_pos:
-            loguru_logger.error('Не удалось получить подписки из state.storage!')
-            return
-
-        if (
-            subs_info.sub_by_cur_pos.product.price
-            != subs_info.sub_by_cur_pos.user_product.price_threshold
-        ):
-            await call.message.edit_caption(
-                caption=Msg.current_product_price_w_exist_subscription_w_thr(
-                    subs_info.sub_by_cur_pos
-                ),
-                reply_markup=RowKeyboard(
-                    buttons=ACTIONS_W_PRODUCT_IF_EXIST_SUBSCRIPTION_AND_CHOSEN_W_THR
-                ),
-            )
-
-        else:
-            await call.message.edit_caption(
-                caption=Msg.current_product_price_w_exist_subscription_wo_thr(
-                    subs_info.sub_by_cur_pos
-                ),
-                reply_markup=RowKeyboard(
-                    buttons=ACTIONS_W_PRODUCT_IF_EXIST_SUBSCRIPTION_AND_CHOSEN_WO_THR
-                ),
-            )
-
-        await state.storage.write_wb_product(
-            state.user, state.chat, subs_info.wb_prod_from_sub_by_cur_pos
+    else:
+        await call.message.edit_caption(
+            caption=Msg.current_product_price_w_exist_subscription_wo_thr(
+                subprod_collection.sub_by_cur_pos
+            ),
+            reply_markup=ProductActionsWOThr(),
         )
-        await state.set_state(NotifierState.waiting_action_w_product_for_exist.state)
 
-    @staticmethod
-    async def prev_product_card(call: CallbackQuery, state: Context) -> None:
-        subs_info: SubscriptionsInfo = await state.storage.get_subs_info(state.user, state.chat)
-        if subs_info.empty or not subs_info.sub_by_cur_pos or subs_info.current_position == 0:
-            loguru_logger.error('Не удалось получить подписки из state.storage!')
-            return
+    await state.storage.write_product(state.key, subprod_collection.prod_by_cur_pos)
+    await state.set_state(NotifierState.waiting_action_w_product_for_exist.state)
 
-        subs_info.go_to_prev_pos()
 
-        with transferring_file(subs_info.sub_by_cur_pos.product.img) as photo:
-            await call.message.edit_media(
-                InputMediaPhoto(media=photo, caption=Msg.subscription(subs_info)),
-                reply_markup=SubsNavigationKeyboard(
-                    subs=subs_info, product_id=subs_info.sub_by_cur_pos.product.id
-                ),
-            )
+@router.callback_query(F.data == 'prev_product')
+async def prev_product_card(
+    call: CallbackQuery, state: Context, sub_service: SubscriptionService
+) -> None:
+    sub_collection: SubProductCollection = await state.storage.get_subs_info(state.key)
+    if not sub_collection.sub_by_cur_pos:
+        loguru_logger.error('Не удалось получить подписки из state.storage!')
+        return
 
-        await state.storage.write_subs(state.user, state.chat, subs_info)
+    sub_service.shift_backward_pos_by_sub_collection(sub_collection)
+    with transferring_file(sub_collection.sub_by_cur_pos.product.img) as photo:
+        await call.message.edit_media(
+            InputMediaPhoto(media=photo, caption=Msg.subscription(sub_collection)),
+            reply_markup=SubsNavigationKeyboard(subs=sub_collection),
+        )
 
-    async def next_product_card(self, call: CallbackQuery, state: Context) -> None:
-        subs_info: SubscriptionsInfo = await state.storage.get_subs_info(state.user, state.chat)
-        if subs_info.empty or not subs_info.sub_by_cur_pos:
-            loguru_logger.error('Не удалось получить подписки из state.storage!')
-            return
+    await state.storage.write_subs(state.key, sub_collection)
 
-        await subs_info.go_to_next_pos(user_id=state.user, db_connection=self.db)
 
-        with transferring_file(subs_info.sub_by_cur_pos.product.img) as photo:
-            await call.message.edit_media(
-                InputMediaPhoto(media=photo, caption=Msg.subscription(subs_info)),
-                reply_markup=SubsNavigationKeyboard(
-                    subs=subs_info, product_id=subs_info.sub_by_cur_pos.product.id
-                ),
-            )
+@router.callback_query(F.data == 'next_product')
+async def next_product_card(
+    call: CallbackQuery, state: Context, sub_service: SubscriptionService
+) -> None:
+    sub_collection: SubProductCollection = await state.storage.get_subs_info(state.key)
+    if not sub_collection.sub_by_cur_pos:
+        loguru_logger.error('Не удалось получить подписки из state.storage!')
+        return
 
-        await state.storage.write_subs(state.user, state.chat, subs_info)
+    await sub_service.shift_forward_pos_by_sub_collection(sub_collection, state.key.user_id)
+
+    with transferring_file(sub_collection.sub_by_cur_pos.product.img) as photo:
+        await call.message.edit_media(
+            InputMediaPhoto(media=photo, caption=Msg.subscription(sub_collection)),
+            reply_markup=SubsNavigationKeyboard(subs=sub_collection),
+        )
+
+    await state.storage.write_subs(state.key, sub_collection)

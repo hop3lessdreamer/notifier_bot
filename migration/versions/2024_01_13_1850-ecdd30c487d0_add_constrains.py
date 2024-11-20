@@ -19,17 +19,18 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    op.execute("""
-        CREATE TRIGGER user_product_check_fkeys
-        BEFORE INSERT ON "UserProduct"
-        FOR EACH ROW
-        BEGIN
-            SELECT RAISE(ABORT, 'Внешний ключ не существует в ссылочной таблице')
-            WHERE
-                (SELECT COUNT(*) FROM "User" u WHERE u."ID" = NEW."UserID") = 0
-                or (SELECT COUNT(*) FROM "Product" p WHERE p."ID" = NEW."ProductID") = 0;
-        END;
-    """)
+    """"""
+    # op.execute("""
+    #     CREATE TRIGGER user_product_check_fkeys
+    #     BEFORE INSERT ON "UserProduct"
+    #     FOR EACH ROW
+    #     BEGIN
+    #         SELECT RAISE(ABORT, 'Внешний ключ не существует в ссылочной таблице')
+    #         WHERE
+    #             (SELECT COUNT(*) FROM "User" u WHERE u."ID" = NEW."UserID") = 0
+    #             or (SELECT COUNT(*) FROM "Product" p WHERE p."ID" = NEW."ProductID") = 0;
+    #     END;
+    # """)
     # ### end Alembic commands ###
 
 

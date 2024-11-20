@@ -3,7 +3,7 @@ from sqlalchemy import delete
 
 from config import bot_config
 from db import db
-from core.wb.wb_parser import WbProduct
+from core.schemas.product import WbProduct
 from infrastructure.db.models import ProductModel, UserModel, UserProductModel, Base
 from utils.types import ProductID
 

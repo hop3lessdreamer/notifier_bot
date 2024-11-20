@@ -4,13 +4,13 @@ from typing import Generic
 
 from aiohttp import ClientSession, ClientTimeout
 
-from logger import loguru_logger
+from logger import logger as loguru_logger
 from utils.response import DEFAULT_TIMEOUT, get_fake_headers
 from utils.transform_types import from_bytes_to_b64
 from utils.types import b64
 
 
-class WbImgDownloader(Generic[b64]):
+class WbImgDownloader(Generic[b64]):  # type: ignore # noqa
     RAW_IMG_URL = 'https:{}/vol{}/part{}/{}/images/c{}/{}.jpg'
     DEFAULT_IMG_SIZE = '246x328'
     #   taking main product img
