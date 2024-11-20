@@ -111,8 +111,12 @@ async def prev_product_card(
         loguru_logger.error('Не удалось получить подписки из state.storage!')
         return
 
+    loguru_logger.info(f'sub_collection.cur_pos = {sub_collection.cur_pos}')
     sub_service.shift_backward_pos_by_sub_collection(sub_collection)
-    with transferring_file(sub_collection.sub_by_cur_pos.product.img) as photo:
+    sub = sub_collection.sub_by_cur_pos
+    loguru_logger.info(f'sub = {sub}')
+    loguru_logger.info(f'sub_collection.cur_pos = {sub_collection.cur_pos}')
+    with transferring_file(sub.product.img) as photo:
         await call.message.edit_media(
             InputMediaPhoto(media=photo, caption=Msg.subscription(sub_collection)),
             reply_markup=SubsNavigationKeyboard(subs=sub_collection),
@@ -130,7 +134,9 @@ async def next_product_card(
         loguru_logger.error('Не удалось получить подписки из state.storage!')
         return
 
+    loguru_logger.info(f'sub_collection.cur_pos = {sub_collection.cur_pos}')
     await sub_service.shift_forward_pos_by_sub_collection(sub_collection, state.key.user_id)
+    loguru_logger.info(f'sub_collection.cur_pos = {sub_collection.cur_pos}')
 
     with transferring_file(sub_collection.sub_by_cur_pos.product.img) as photo:
         await call.message.edit_media(

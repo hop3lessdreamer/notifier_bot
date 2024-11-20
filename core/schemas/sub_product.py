@@ -56,7 +56,7 @@ class SubProductCollection:
 
     @cached_property
     def is_cur_at_beginning(self) -> bool:
-        return self.cur_pos == (self.subs_length - 1)
+        return self.cur_pos == 0
 
     def __pos__(self) -> None:
         self.cur_pos += 1
@@ -82,4 +82,7 @@ class SubProductCollection:
         self.__dict__.pop('subs_length', None)
         self.__dict__.pop('first_sub', None)
         self.__dict__.pop('sub_by_cur_pos', None)
-        self.__dict__.pop('wb_prod_from_sub_by_cur_pos', None)
+        self.__dict__.pop('prod_by_cur_pos', None)
+        self.__dict__.pop('has_more_sub_in_db', None)
+        self.__dict__.pop('is_cur_at_end', None)
+        self.__dict__.pop('is_cur_at_beginning', None)
