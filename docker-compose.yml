@@ -54,7 +54,9 @@ services:
       - ".:/bot"
     # network_mode: host
     command:
-      /bin/sh -c "poetry run alembic upgrade head
+      /bin/sh -c "echo \"Running alembic upgrade...\"
+      && poetry run alembic upgrade head
+      && echo \"Running main.py...\"
       && poetry run python -Xfrozen_modules=off main.py"
     depends_on:
       - rabbit
