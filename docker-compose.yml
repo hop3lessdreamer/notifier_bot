@@ -27,6 +27,7 @@ services:
       PGDATA: /data/postgres
     volumes:
       - pg_data:/data/postgres
+      - ./db:/docker-entrypoint-initdb.d
 
   rabbit:
     image: rabbitmq:4.0-management-alpine

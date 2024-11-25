@@ -21,3 +21,12 @@ tasks:
     cmds:
       - poetry update
       - pre-commit autoupdate
+
+  build-wo-cache:
+    cmds:
+      - docker compose build --no-cache
+      - docker compose --env-file .prod.env up -d
+
+  down:
+    cmds:
+      - docker compose down -v
