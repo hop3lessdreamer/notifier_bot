@@ -28,7 +28,7 @@ class BotConfig(BaseSettings):
     WEBAPP_PORT: str
 
     #   TODO: when testing change to ".test.env"
-    model_config = SettingsConfigDict(env_file='.test.env')
+    model_config = SettingsConfigDict(env_file='.prod.env')
 
     @property
     def postgres_sync(self) -> str:
