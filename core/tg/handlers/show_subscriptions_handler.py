@@ -19,8 +19,8 @@ router = Router(name='show_sub_router')
 
 
 @router.callback_query(F.data == 'disabled')
-def empty_callback() -> None:
-    ...
+def empty_callback(_call: CallbackQuery) -> None:
+    pass
 
 
 @router.callback_query(F.data == 'show_subscriptions')
