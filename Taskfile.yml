@@ -7,11 +7,11 @@ tasks:
 
   build:
     cmds:
-      - docker compose --env-file .test.env up -d --build
+      - docker compose --env-file .prod.env up -d --build
 
   recreate:
     cmds:
-      - docker compose --env-file .test.env up -d --force-recreate
+      - docker compose --env-file .prod.env up -d --force-recreate
 
   check:
     cmds:
