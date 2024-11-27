@@ -36,4 +36,4 @@ jobs:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USER }}
           password: ${{ secrets.PASS }}
-          after_script: touch /root/projects/test.txt
+          after_script: git pull; task recreate
