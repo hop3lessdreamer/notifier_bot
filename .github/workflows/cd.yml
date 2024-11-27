@@ -13,4 +13,4 @@ jobs:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USER }}
           password: ${{ secrets.PASS }}
-          after_script: echo working          
+          after_script: touch /root/projects/test.txt
