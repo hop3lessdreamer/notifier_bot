@@ -12,10 +12,11 @@ jobs:
         with:
           version: 3.x
 
+      - name: Checkout
+        uses: actions/checkout@v4.2.2
 
       - name: Ruff check
         run: |
-          cd /root/projects/notifier_bot
           task check
 
 
