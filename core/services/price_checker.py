@@ -27,11 +27,6 @@ class PriceCheckerService:
     sub_service: SubscriptionService
     wb_service: WbService
 
-    async def ping(self) -> None:  # noqa
-        from datetime import datetime
-
-        print(f'ping - {datetime.now()}')  # noqa: T201
-
     async def wb_price_check(self) -> None:  # noqa
         loguru_logger.info('wb price check')
 

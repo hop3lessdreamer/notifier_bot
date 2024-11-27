@@ -44,4 +44,4 @@ async def check_wb_price() -> None:
         ),
         WbService(WbProductImgService(), WbProductInfoService()),
     )
-    await price_checker.ping()  # noqa
+    await price_checker.wb_price_check()  # noqa
