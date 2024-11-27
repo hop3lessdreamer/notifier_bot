@@ -7,7 +7,17 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: SSH Server Deploy
+      - name: Install Task
+        uses: arduino/setup-task@v2
+        with:
+          version: 3.x
+
+      - name: Ruff check
+        run: |
+          cd /root/projects/notifier_bot
+          task check
+
+      - name: SSH App Deploy
         uses: kostyaten/ssh-server-deploy@v4
         with:
           host: ${{ secrets.HOST }}
