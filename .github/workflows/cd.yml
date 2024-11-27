@@ -18,7 +18,9 @@ jobs:
       - name: Ruff check
         run: |
           pwd
-          task check
+          pip install poetry
+          pip install pre-commit
+          poetry run pre-commit run --show-diff-on-failure --color=always --all-files
 
 
       - name: SSH App Deploy
