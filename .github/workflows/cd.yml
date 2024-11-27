@@ -36,4 +36,4 @@ jobs:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USER }}
           password: ${{ secrets.PASS }}
-          after_script: cd /root/projects/notifier-bot git pull; task recreate
+          after_script: cd /root/projects/notifier-bot; git pull; task recreate
