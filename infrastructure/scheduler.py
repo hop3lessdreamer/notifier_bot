@@ -10,8 +10,7 @@ taskiq_broker.task(
     routing_key='price-check',
     schedule=[
         {
-            'cron': '*/1 * * * *',
-            # "cron": "0 */8 * * *",
+            'cron': '0 */8 * * *',
         }
     ],
 )
