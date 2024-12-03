@@ -3,6 +3,8 @@ from decimal import Decimal
 from typing import cast
 
 from sqlalchemy import Function, Result, column, exists, insert, select, update
+from sqlalchemy import cast as sa_cast
+from sqlalchemy.dialects.postgresql import JSONB
 
 from core.repositories.product import IProductRepo
 from core.schemas.product import Product
@@ -45,7 +47,9 @@ class ProductRepoImpl(IProductRepo):
         async with await self.db_conn() as session:
             subq_product_prices = (
                 select(column('key'), column('value'))
-                .select_from(Function('jsonb_each', from_dict_to_json(new_prices)).alias('t'))  # type: ignore
+                .select_from(
+                    Function('jsonb_each', sa_cast(from_dict_to_json(new_prices), JSONB)).alias('t')
+                )  # type: ignore
                 .subquery('product_prices')
             )
             res: Result = await session.execute(
