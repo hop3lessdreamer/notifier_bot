@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from decimal import Decimal
 from typing import cast
 
-from sqlalchemy import Function, Result, column, exists, insert, select, update
+from sqlalchemy import BigInteger, Function, Numeric, Result, column, exists, insert, select, update
 from sqlalchemy import cast as sa_cast
 from sqlalchemy.dialects.postgresql import JSONB
 
@@ -46,7 +46,7 @@ class ProductRepoImpl(IProductRepo):
     async def update_prices(self, new_prices: dict[ProductID, Decimal]) -> list[Product]:
         async with await self.db_conn() as session:
             subq_product_prices = (
-                select(column('key'), column('value'))
+                select(sa_cast(column('key'), BigInteger), sa_cast(column('value'), Numeric))
                 .select_from(
                     Function('jsonb_each', sa_cast(from_dict_to_json(new_prices), JSONB)).alias('t')
                 )  # type: ignore
