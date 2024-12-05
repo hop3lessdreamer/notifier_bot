@@ -47,5 +47,8 @@ class BotConfig(BaseSettings):
         return self.PRICE_CHECKS_FREQUENCY * 60
 
 
-bot_config = BotConfig()  # type: ignore
+try:
+    bot_config = BotConfig()  # type: ignore
+except Exception:
+    bot_config = BotConfig(_env_file='.test.env')
 test_config = BotConfig(_env_file='.test.env')
