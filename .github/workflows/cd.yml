@@ -50,4 +50,4 @@ jobs:
         run: |
           ls
           poetry install
-          poetry run pytest tests/unit_test/test_product_service.py
+          poetry run pytest tests/unit_tests/test_product_service.py
