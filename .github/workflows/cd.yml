@@ -37,3 +37,16 @@ jobs:
           username: ${{ secrets.USER }}
           password: ${{ secrets.PASS }}
           after_script: cd /root/projects/notifier_bot; git pull; task recreate
+
+      - name: Setup PostgreSQL
+        uses: Harmon758/postgresql-action@v1.0.0
+        with:
+          postgresql db: ${{ secrets.DB_NAME }}
+          postgresql user: ${{ secrets.DB_USER }}
+          postgresql password: ${{ secrets.DB_PASS }}
+
+
+      - name: Run tests
+        run: |
+          poetry run pwd
+          pwd
