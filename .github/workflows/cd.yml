@@ -48,7 +48,6 @@ jobs:
 
       - name: Run tests
         run: |
-          pwd
           ls
           poetry install
           poetry run pytest tests/unit_test/test_product_service.py
