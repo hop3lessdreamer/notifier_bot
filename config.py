@@ -32,11 +32,11 @@ class BotConfig(BaseSettings):
 
     @property
     def postgres_sync(self) -> str:
-        return f'postgresql+psycopg2://{self.DB_USER}:{self.DB_PASS}@db-p/{self.DB_NAME}'
+        return f'postgresql+psycopg2://{self.DB_USER}:{self.DB_PASS}@localhost/{self.DB_NAME}'
 
     @property
     def postgres_async(self) -> str:
-        return f'postgresql+asyncpg://{self.DB_USER}:{self.DB_PASS}@db-p/{self.DB_NAME}'
+        return f'postgresql+asyncpg://{self.DB_USER}:{self.DB_PASS}@localhost/{self.DB_NAME}'
 
     @property
     def webhook_url(self) -> str:
@@ -48,3 +48,4 @@ class BotConfig(BaseSettings):
 
 
 bot_config = BotConfig()  # type: ignore
+test_config = BotConfig(_env_file='.test.env')

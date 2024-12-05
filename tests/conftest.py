@@ -1,7 +1,7 @@
 import pytest
 from sqlalchemy import delete
 
-from config import bot_config
+from config import test_config
 from db import db
 from core.schemas.product import WbProduct
 from infrastructure.db.models import ProductModel, UserModel, UserProductModel, Base
@@ -20,19 +20,20 @@ def mocked_wb_get_products(mocker) -> dict[ProductID, WbProduct]:
     return mocker.patch('core.wb.wb_parser.WbParser.get_wb_products', return_value=wb_products)
 
 
-@pytest.fixture()
+@pytest.fixture(scope='function', autouse=True)
 def clear_tables():
     yield
     with db.session() as session:
+        #   at first del UserProduct cause table has refs to Product and User
+        session.execute(delete(UserProductModel))
         session.execute(delete(ProductModel))
         session.execute(delete(UserModel))
-        session.execute(delete(UserProductModel))
         session.commit()
 
 
 @pytest.fixture(scope='session', autouse=True)
 def setup_db():
-    assert bot_config.MODE == 'TEST', 'using a non-test environment!'
+    assert test_config.MODE == 'TEST', 'using a non-test environment!'
 
     db.drop_db(Base)
     db.init_db(Base)
