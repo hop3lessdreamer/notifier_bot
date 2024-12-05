@@ -3,7 +3,7 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
-from sqlalchemy import Engine, create_engine
+from sqlalchemy import Engine, NullPool, create_engine
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,
@@ -54,7 +54,9 @@ class PostgresDB(Database):
     @property
     def aengine(self) -> AsyncEngine:
         if self._aengine is None:
-            self._aengine = create_async_engine(bot_config.postgres_async, echo=True)
+            self._aengine = create_async_engine(
+                bot_config.postgres_async, echo=True, poolclass=NullPool
+            )
             logger.info(f'init db connection {bot_config.postgres_async}')
         return self._aengine
 
