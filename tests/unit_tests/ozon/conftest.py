@@ -3,7 +3,7 @@ import pytest
 from core.ozon.parser import OzonProductParser
 
 
-SUCCESS_PRODUCTS = [146427172]
+SUCCESS_PRODUCTS = [146427195]
 
 
 @pytest.fixture(scope='session')

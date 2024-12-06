@@ -47,6 +47,7 @@ class BotConfig(BaseSettings):
         return self.PRICE_CHECKS_FREQUENCY * 60
 
 
+#   FIXME: требуется для CI/CD т.к в репе нет .prod.env, то при инициализации падает
 try:
     bot_config = BotConfig()  # type: ignore
 except Exception:

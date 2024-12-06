@@ -2,9 +2,7 @@ from dataclasses import dataclass
 from decimal import Decimal
 from typing import cast
 
-from sqlalchemy import BigInteger, Function, Numeric, Result, column, exists, insert, select, update
-from sqlalchemy import cast as sa_cast
-from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy import Result, exists, insert, select, text
 
 from core.repositories.product import IProductRepo
 from core.schemas.product import Product
@@ -45,18 +43,17 @@ class ProductRepoImpl(IProductRepo):
 
     async def update_prices(self, new_prices: dict[ProductID, Decimal]) -> list[Product]:
         async with await self.db_conn() as session:
-            subq_product_prices = (
-                select(sa_cast(column('key'), BigInteger), sa_cast(column('value'), Numeric))
-                .select_from(
-                    Function('jsonb_each', sa_cast(from_dict_to_json(new_prices), JSONB)).alias('t')
-                )  # type: ignore
-                .subquery('product_prices')
-            )
             res: Result = await session.execute(
-                update(ProductModel)
-                .where(subq_product_prices.c.key == ProductModel.ID)
-                .values(Price=subq_product_prices.c.value)
-                .returning(ProductModel)
+                text(
+                    """
+                    update "Product"
+                    set "Price" = je.value::numeric
+                    from jsonb_each_text((:prices)::jsonb) je
+                    where je.key::int = "ID"
+                    returning "Product".*;
+                """
+                ),
+                {'prices': from_dict_to_json(new_prices)},
             )
             await session.commit()
-        return [Product.model_validate(result[0]) for result in res.all()]
+        return [Product.model_validate(result) for result in res.all()]

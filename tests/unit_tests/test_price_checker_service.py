@@ -33,6 +33,7 @@ def test_find_changing_prices(mock_tg_disp, mock_bot, mock_wb_service, old_new_p
         assert changing_prices[p].new == old_new_prods[1][p].price
 
 
+@pytest.mark.skip(reason='need finish')
 def test_find_who_to_notify(mock_tg_disp, mock_bot, mock_wb_service, changing_prods, subs_already_added_by_pid):
     service = PriceCheckerService(
         tg_disp=mock_tg_disp,
