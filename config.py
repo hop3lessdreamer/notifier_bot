@@ -12,6 +12,7 @@ class BotConfig(BaseSettings):
     DB_USER: str
     DB_PASS: str
     DB_NAME: str
+    DB_HOST: str
 
     RABBIT_LOGIN: str
     RABBIT_PASS: str
@@ -32,11 +33,11 @@ class BotConfig(BaseSettings):
 
     @property
     def postgres_sync(self) -> str:
-        return f'postgresql+psycopg2://{self.DB_USER}:{self.DB_PASS}@localhost/{self.DB_NAME}'
+        return f'postgresql+psycopg2://{self.DB_USER}:{self.DB_PASS}@{self.DB_HOST}/{self.DB_NAME}'
 
     @property
     def postgres_async(self) -> str:
-        return f'postgresql+asyncpg://{self.DB_USER}:{self.DB_PASS}@localhost/{self.DB_NAME}'
+        return f'postgresql+asyncpg://{self.DB_USER}:{self.DB_PASS}@{self.DB_HOST}/{self.DB_NAME}'
 
     @property
     def webhook_url(self) -> str:
