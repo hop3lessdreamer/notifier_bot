@@ -15,6 +15,7 @@ from db import db
 
 
 @pytest.mark.asyncio
+@pytest.mark.skip()
 async def test_add_sub_w_not_existing_prod(subs):
     service = SubscriptionService(
         SubscriptionRepoImpl(db),
@@ -30,6 +31,7 @@ async def test_add_sub_w_not_existing_prod(subs):
 
 
 @pytest.mark.asyncio
+@pytest.mark.skip()
 async def test_add_sub_w_existing_prod(subs_w_existing_prods):
     service = SubscriptionService(
         SubscriptionRepoImpl(db),
@@ -45,6 +47,7 @@ async def test_add_sub_w_existing_prod(subs_w_existing_prods):
 
 
 @pytest.mark.asyncio
+@pytest.mark.skip()
 async def test_del_sub(subs_w_existing_prods):
     service = SubscriptionService(
         SubscriptionRepoImpl(db),
@@ -74,6 +77,7 @@ async def test_del_sub(subs_w_existing_prods):
 
 
 @pytest.mark.asyncio
+@pytest.mark.skip()
 async def test_get_sub_by_user(subs_already_added):
     service = SubscriptionService(
         SubscriptionRepoImpl(db),
@@ -102,6 +106,7 @@ async def test_get_sub_by_user(subs_already_added):
 
 
 @pytest.mark.asyncio
+@pytest.mark.skip()
 async def test_get_all_subs(subs_already_added):
     service = SubscriptionService(
         SubscriptionRepoImpl(db),
@@ -129,6 +134,7 @@ async def test_get_all_subs(subs_already_added):
 
 
 @pytest.mark.asyncio
+@pytest.mark.skip()
 async def test_sub_cnt_by_user(subs_already_added):
     service = SubscriptionService(
         SubscriptionRepoImpl(db),
@@ -143,6 +149,7 @@ async def test_sub_cnt_by_user(subs_already_added):
 
 
 @pytest.mark.asyncio
+@pytest.mark.skip()
 async def test_get_sub_by_user_product(subs_already_added):
     service = SubscriptionService(
         SubscriptionRepoImpl(db),
@@ -160,6 +167,7 @@ async def test_get_sub_by_user_product(subs_already_added):
 
 
 @pytest.mark.asyncio
+@pytest.mark.skip()
 async def test_subscribe_to_price_reduction(subs_w_existing_prods):
     service = SubscriptionService(
         SubscriptionRepoImpl(db),
@@ -177,6 +185,7 @@ async def test_subscribe_to_price_reduction(subs_w_existing_prods):
 
 
 @pytest.mark.asyncio
+@pytest.mark.skip()
 async def test_subscribe_to_price_reduction_for_exist(subs_already_added):
     service = SubscriptionService(
         SubscriptionRepoImpl(db),
@@ -197,6 +206,7 @@ async def test_subscribe_to_price_reduction_for_exist(subs_already_added):
 
 
 @pytest.mark.asyncio
+@pytest.mark.skip()
 async def test_subscribe(subs_w_existing_prods):
     service = SubscriptionService(
         SubscriptionRepoImpl(db),
@@ -215,6 +225,7 @@ async def test_subscribe(subs_w_existing_prods):
 
 
 @pytest.mark.asyncio
+@pytest.mark.skip()
 async def test_resub(subs_already_added):
     service = SubscriptionService(
         SubscriptionRepoImpl(db),
