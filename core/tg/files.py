@@ -16,14 +16,3 @@ def transferring_file(
         f'{file_name}.{file_ext}',
         chunk_size=4 * 1024 * 1024,  # 4 Mb
     )
-
-
-@contextmanager
-def transferring_file2(
-    data: bytes, file_name: str = 'default', file_ext: str = 'jpg'
-) -> Iterator[BufferedInputFile]:
-    yield BufferedInputFile(
-        data,
-        f'{file_name}.{file_ext}',
-        chunk_size=4 * 1024 * 1024,  # 4 Mb
-    )

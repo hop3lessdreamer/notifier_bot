@@ -10,7 +10,7 @@ from core.schemas.user import User
 from core.services.subscription import SubscriptionService
 from core.services.user import UserService
 from core.services.wb import WbService
-from core.tg.files import transferring_file2
+from core.tg.files import transferring_file
 from core.tg.keyboards import OnSubNotifyKeyboard
 from core.tg.message_texts import Messages
 from core.tg.tg_dispatcher import TgDispatcher
@@ -57,7 +57,7 @@ class PriceCheckerService:
         for user_id, products in who_to_notify.items():
             user: User = await self.user_service.get_user(user_id)
             for product in products:
-                with transferring_file2(product.img) as product_img:
+                with transferring_file(product.img) as product_img:
                     await self.tg_disp.storage.write_product(
                         StorageKey(self.bot.id, user.chat_id, user.id), new_products[product.id]
                     )
