@@ -83,6 +83,8 @@ faststream = {extras = ["cli", "rabbit"], version = "^0.5.28"}
 taskiq-faststream = {extras = ["rabbit"], version = "^0.2.0"}
 psycopg2-binary = "^2.9.10"
 asyncpg = "^0.30.0"
+redis = "^5.2.1"
+aioredis = "^2.0.1"
 
 
 [build-system]

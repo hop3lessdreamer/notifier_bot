@@ -1,19 +1,18 @@
-from dataclasses import dataclass, field
 from functools import cached_property
+
+from pydantic import BaseModel
 
 from core.schemas.product import Product
 from core.schemas.user_product import UserProduct
 
 
-@dataclass
-class SubProduct:
+class SubProduct(BaseModel):
     subscription: UserProduct
     product: Product
 
 
-@dataclass
-class SubProductCollection:
-    subs: list[SubProduct] = field(default_factory=list)
+class SubProductCollection(BaseModel):
+    subs: list[SubProduct] = []
     total_sub_cnt: int = 0
     cur_pos: int = 0
 
@@ -60,12 +59,6 @@ class SubProductCollection:
 
     def __pos__(self) -> None:
         self.cur_pos += 1
-
-    def __repr__(self) -> str:
-        subs_repr: str = '\n'.join(
-            [f'pos = {str(i)} >> {sub.__repr__()}' for i, sub in enumerate(self.subs)]
-        )
-        return f'SubscriptionInfo:\n' f'cur_pos = {self.cur_pos}\n' f'subs:\n{subs_repr}\n'
 
     def set_pos_to_last(self) -> None:
         self.cur_pos = self.subs_length - 1

@@ -18,25 +18,27 @@ class SubscriptionService:
 
     async def subscribe(self, user_id: int, product: Product, threshold: Decimal) -> SubProduct:
         return SubProduct(
-            await self._add_sub(
+            subscription=await self._add_sub(
                 UserProductAdd(UserID=user_id, ProductID=product.id, PriceThreshold=threshold),
                 product,
             ),
-            await self.product_service.get_product(product.id),
+            product=await self.product_service.get_product(product.id),
         )
 
     async def resubscribe(self, user_id: int, product_id: int, threshold: Decimal) -> SubProduct:
         sub: UserProduct = await self.subscription_repo.update_threshold(
             user_id, product_id, threshold
         )
-        return SubProduct(sub, await self.product_service.get_product(product_id))
+        return SubProduct(
+            subscription=sub, product=await self.product_service.get_product(product_id)
+        )
 
     async def delete_sub(self, user_id: int, product_id: int) -> SubProduct | None:
         sub: UserProduct = await self.subscription_repo.delete(user_id, product_id)
         if not sub.user_id or not sub.product_id:
             return None
         product: Product = cast(Product, await self.product_service.try_get_product(product_id))
-        return SubProduct(sub, product)
+        return SubProduct(subscription=sub, product=product)
 
     async def get_sub_by_user(
         self, user_id: int, limit: int = 100, offset: int = 0
@@ -57,7 +59,9 @@ class SubscriptionService:
             UserProductAdd(UserID=user_id, ProductID=product.id, PriceThreshold=product.price),
             product,
         )
-        return SubProduct(sub, await self.product_service.get_product(product.id))
+        return SubProduct(
+            subscription=sub, product=await self.product_service.get_product(product.id)
+        )
 
     async def subscribe_to_price_reduction_for_exist(
         self, user_id: int, product: Product

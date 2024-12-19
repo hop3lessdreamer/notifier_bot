@@ -29,8 +29,8 @@ class SubProductRepoImpl(ISubProductRepo):
 
         return [
             SubProduct(
-                UserProduct.model_validate(user_prod_mdl[0]),
-                Product.model_validate(user_prod_mdl[1]),
+                subscription=UserProduct.model_validate(user_prod_mdl[0]),
+                product=Product.model_validate(user_prod_mdl[1]),
             )
             for user_prod_mdl in selection_res.all()
         ]
@@ -48,7 +48,8 @@ class SubProductRepoImpl(ISubProductRepo):
                 return None
 
         return SubProduct(
-            UserProduct.model_validate(result_row[0]), Product.model_validate(result_row[1])
+            subscription=UserProduct.model_validate(result_row[0]),
+            product=Product.model_validate(result_row[1]),
         )
 
     async def get_all(self) -> list[SubProduct]:
@@ -60,6 +61,9 @@ class SubProductRepoImpl(ISubProductRepo):
             )
             await session.commit()
         return [
-            SubProduct(UserProduct.model_validate(result[0]), Product.model_validate(result[1]))
+            SubProduct(
+                subscription=UserProduct.model_validate(result[0]),
+                product=Product.model_validate(result[1]),
+            )
             for result in query_result.all()
         ]

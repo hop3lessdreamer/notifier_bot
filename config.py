@@ -20,8 +20,11 @@ class BotConfig(BaseSettings):
     RABBIT_PORT: str
     RABBIT_MONITOR_PORT: str
 
+    REDIS_HOST: str
+    REDIS_PORT: str
+    REDIS_DB: str
+
     API_TOKEN: str
-    PRICE_CHECKS_FREQUENCY: int
 
     WEBHOOK_HOST: str
     WEBHOOK_PATH: str
@@ -42,10 +45,6 @@ class BotConfig(BaseSettings):
     @property
     def webhook_url(self) -> str:
         return f'{self.WEBHOOK_HOST}{self.WEBHOOK_PATH}'
-
-    @property
-    def price_check_frequency(self) -> int:
-        return self.PRICE_CHECKS_FREQUENCY * 60
 
 
 #   FIXME: требуется для CI/CD т.к в репе нет .prod.env, то при инициализации падает

@@ -114,8 +114,16 @@ class WbProductImgService:
             return '//basket-12.wbbasket.ru'
         elif 1920 <= vol <= 2045:
             return '//basket-13.wbbasket.ru'
+        elif 2045 <= vol <= 2189:
+            return '//basket-14.wbbasket.ru'
+        elif 2189 <= vol <= 2405:
+            return '//basket-15.wbbasket.ru'
+        elif 2405 <= vol <= 2621:
+            return '//basket-16.wbbasket.ru'
+        elif 2621 <= vol <= 2837:
+            return '//basket-17.wbbasket.ru'
 
-        return '//basket-14.wbbasket.ru'
+        return '//basket-18.wbbasket.ru'
 
 
 class WbProductInfoService:
