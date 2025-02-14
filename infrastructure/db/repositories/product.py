@@ -25,7 +25,7 @@ class ProductRepoImpl(IProductRepo):
                     Price=product.price,
                     Img=product.img,
                     Title=product.title,
-                    MPType=product.mp_type,
+                    MPType=product.mp_type.value,
                 )
                 .returning(ProductModel)
             )

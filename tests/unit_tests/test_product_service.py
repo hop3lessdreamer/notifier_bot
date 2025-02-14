@@ -26,7 +26,8 @@ async def test_add_existing_and_same_price(products):
             ID=products[1].id,
             Price=products[1].price,
             Img=products[1].img,
-            Title=products[1].title
+            Title=products[1].title,
+            MPType=products[1].mp_type
         ))
         session.commit()
 
@@ -36,6 +37,7 @@ async def test_add_existing_and_same_price(products):
     assert prod1.price == products[1].price, 'incorrect product1 price!'
     assert prod1.img == products[1].img, 'incorrect product1 Img!'
     assert prod1.title == products[1].title, 'incorrect product1 Title!'
+    assert prod1.mp_type == products[1].mp_type, 'incorrect product1 MpType!'
 
 
 @pytest.mark.asyncio
@@ -45,7 +47,8 @@ async def test_add_existing_and_not_same_price(products):
             ID=products[1].id,
             Price=products[1].price,
             Img=products[1].img,
-            Title=products[1].title
+            Title=products[1].title,
+            MPType=products[1].mp_type
         ))
         session.commit()
 
@@ -56,6 +59,7 @@ async def test_add_existing_and_not_same_price(products):
     assert prod1.price == products[1].price, 'incorrect product1 price!'
     assert prod1.img == products[1].img, 'incorrect product1 Img!'
     assert prod1.title == products[1].title, 'incorrect product1 Title!'
+    assert prod1.mp_type == products[1].mp_type, 'incorrect product1 MpType!'
 
 
 @pytest.mark.asyncio
@@ -65,7 +69,8 @@ async def test_update_prices(products):
             ID=products[1].id,
             Price=products[1].price,
             Img=products[1].img,
-            Title=products[1].title
+            Title=products[1].title,
+            MPType=products[1].mp_type
         ))
         session.commit()
 
@@ -82,7 +87,8 @@ async def test_try_get_not_existing_product(products):
             ID=products[1].id,
             Price=products[1].price,
             Img=products[1].img,
-            Title=products[1].title
+            Title=products[1].title,
+            MPType=products[1].mp_type
         ))
         session.commit()
 
@@ -93,6 +99,7 @@ async def test_try_get_not_existing_product(products):
     assert prod.img == products[1].img
     assert prod.title == products[1].title
     assert prod.price == products[1].price
+    assert prod.mp_type == products[1].mp_type
 
 
 @pytest.mark.asyncio
@@ -102,7 +109,8 @@ async def test_get_existing_product(products):
             ID=products[1].id,
             Price=products[1].price,
             Img=products[1].img,
-            Title=products[1].title
+            Title=products[1].title,
+            MPType=products[1].mp_type
         ))
         session.commit()
 
@@ -113,6 +121,7 @@ async def test_get_existing_product(products):
     assert prod.img == products[1].img
     assert prod.title == products[1].title
     assert prod.price == products[1].price
+    assert prod.mp_type == products[1].mp_type
 
 
 @pytest.mark.asyncio
@@ -120,7 +129,6 @@ async def test_get_existing_product(products):
 async def test_get_not_existing_product(products):
     service = ProductService(ProductRepoImpl(db))
     await service.get_product(products[1].id)
-
 
 
 def test_validate_product():

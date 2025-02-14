@@ -6,7 +6,7 @@ import pytest
 from unittest.mock import MagicMock
 from sqlalchemy import delete, insert
 
-from core.schemas.product import Product
+from core.schemas.product import MPType, Product
 from core.schemas.user import User
 from core.schemas.user_product import UserProduct, UserProductAdd
 from core.tg.tg_dispatcher import TgDispatcher
@@ -49,19 +49,22 @@ def products():
             ID=101,
             Price=decimal.Decimal(1000),
             Img=img_1,
-            Title='BIOREPAIR/Зубная щетка Gengive ультрамягкая для дёсен, бордовая'
+            Title='BIOREPAIR/Зубная щетка Gengive ультрамягкая для дёсен, бордовая',
+            MPType=MPType.WB
         ),
         Product(
             ID=102,
             Price=decimal.Decimal(2000),
             Img=img_2,
-            Title='BIOREPAIR/Зубная паста Fast Sensitive для чувствительных зубов, 75мл'
+            Title='BIOREPAIR/Зубная паста Fast Sensitive для чувствительных зубов, 75мл',
+            MPType=MPType.WB
         ),
         Product(
             ID=103,
             Price=decimal.Decimal(3000),
             Img=img_3,
-            Title='ArtofHome/Дозатор для жидкого мыла сенсорный диспенсер'
+            Title='ArtofHome/Дозатор для жидкого мыла сенсорный диспенсер',
+            MPType=MPType.OZON
         ),
     ]
 
@@ -139,11 +142,11 @@ def subs(users, _subs):
 def subs_w_existing_prods(products, subs):
     with db.session() as session:
         session.execute(insert(ProductModel)
-                        .values(ID=products[0].id, Price=products[0].price, Img=products[0].img, Title=products[0].title))
+                        .values(ID=products[0].id, Price=products[0].price, Img=products[0].img, Title=products[0].title, MPType=products[0].mp_type))
         session.execute(insert(ProductModel)
-                        .values(ID=products[1].id, Price=products[1].price, Img=products[1].img, Title=products[1].title))
+                        .values(ID=products[1].id, Price=products[1].price, Img=products[1].img, Title=products[1].title, MPType=products[1].mp_type))
         session.execute(insert(ProductModel)
-                        .values(ID=products[2].id, Price=products[2].price, Img=products[2].img, Title=products[2].title))
+                        .values(ID=products[2].id, Price=products[2].price, Img=products[2].img, Title=products[2].title, MPType=products[2].mp_type))
         session.commit()
 
     yield subs
@@ -205,11 +208,16 @@ def mock_wb_service():
 
 
 @pytest.fixture
+def mock_ozon_service():
+    return MagicMock()
+
+
+@pytest.fixture
 def old_new_prods(products):
     old, new = {}, {}
     for p in products:
         old[p.id] = p
-        new[p.id] = Product(ID=p.id, Price=p.price + decimal.Decimal(500), Img=p.img, Title=p.title)
+        new[p.id] = Product(ID=p.id, Price=p.price + decimal.Decimal(500), Img=p.img, Title=p.title, MPType=p.mp_type)
 
     return old, new
 

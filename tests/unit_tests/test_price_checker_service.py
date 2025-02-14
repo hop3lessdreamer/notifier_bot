@@ -13,7 +13,7 @@ from infrastructure.db.repositories.user import UserRepoImpl
 from utils.types import ProductID
 
 
-def test_find_changing_prices(mock_tg_disp, mock_bot, mock_wb_service, old_new_prods):
+def test_find_changing_prices(mock_tg_disp, mock_bot, mock_wb_service, mock_ozon_service, old_new_prods):
     service = PriceCheckerService(
         tg_disp=mock_tg_disp,
         bot=mock_bot,
@@ -23,7 +23,8 @@ def test_find_changing_prices(mock_tg_disp, mock_bot, mock_wb_service, old_new_p
             SubProductRepoImpl(db),
             ProductService(ProductRepoImpl(db))
         ),
-        wb_service=mock_wb_service
+        wb_service=mock_wb_service,
+        ozon_service=mock_ozon_service
     )
 
     changing_prices = service._find_changing_prices(new_products=old_new_prods[1], old_products=old_new_prods[0])
