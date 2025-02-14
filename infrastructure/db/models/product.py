@@ -15,6 +15,6 @@ class ProductModel(Base):
     Price = Column(Numeric, nullable=False)
     Img = Column(LargeBinary, nullable=False)
     Title = Column(String(255), nullable=False)
-    MPType = Column(ENUM(MPType, name='mp_type_enum', create_type=False))
+    MPType = Column(ENUM(MPType, name='mp_type_enum'))
 
     users = relationship('UserProductModel', back_populates='product', lazy='noload')
