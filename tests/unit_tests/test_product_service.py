@@ -125,9 +125,9 @@ async def test_get_not_existing_product(products):
 
 def test_validate_product():
     service = ProductService(ProductRepoImpl(db))
-    prod_id1 = service.validate_product_id('123456')
-    prod_id2 = service.validate_product_id('https://www.wildberries.ru/catalog/14131375/detail.aspx')
-    prod_id3 = service.validate_product_id('werdsfsdf')
+    prod_id1, _ = service.validate_product_id('123456')
+    prod_id2, _ = service.validate_product_id('https://www.wildberries.ru/catalog/14131375/detail.aspx')
+    prod_id3, _ = service.validate_product_id('werdsfsdf')
 
     assert prod_id1 == 123456
     assert prod_id2 == 14131375

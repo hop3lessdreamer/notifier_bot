@@ -1,19 +1,20 @@
 """ Message texts for bot """
-
 import typing
+from decimal import Decimal
 
-from _decimal import Decimal
 from aiogram.utils import markdown as fmt
 
 from core.schemas.product import Product
 from core.schemas.sub_product import SubProduct, SubProductCollection
-from core.wb import form_url_from_product_id
+from core.services.product import ProductService
 
 
 class Messages:
     HELLO: str = fmt.text(
-        'Приветствую вас! Я бот для уведомления о снижении цен на товары маркетплейса ',
+        'Приветствую вас! Я бот для уведомления о снижении цен на товары маркетплейсов ',
         fmt.hlink('Wildberries', 'https://www.wildberries.ru/'),
+        ' и ',
+        fmt.hlink('OZON', 'https://www.ozon.ru/'),
         '.',
         sep='',
     )
@@ -23,6 +24,7 @@ class Messages:
     INVALID_PRINTED_PRODUCT = 'Неверно указан товар. Попробуйте еще раз!'
     PRINT_THRESHOLD = 'Введите порог цены для уведомления.'
     PRINT_THRESHOLD_IN_PERCENT = 'Введите процент снижения цены для уведомления.'
+    CHOOSE_MP_TYPE = 'Укажите маркетплейс товара'
 
     @staticmethod
     def current_product_price(product: Product) -> str:
@@ -78,19 +80,6 @@ class Messages:
         )
 
     @staticmethod
-    def product_added_yet_wo_threshold(product_id: int) -> str:
-        return typing.cast(
-            str,
-            fmt.text(
-                'Товар ',
-                fmt.hlink(str(product_id), form_url_from_product_id(product_id)),
-                ' уже добавлен в отслеживаемые.',
-                ' Бот уведомит вас при снижении цены.',
-                sep='',
-            ),
-        )
-
-    @staticmethod
     def product_added_w_threshold(product: Product, threshold: Decimal) -> str:
         return typing.cast(
             str,
@@ -99,19 +88,6 @@ class Messages:
                 fmt.hbold(f'"{product.title}"'),
                 ' добавлен в отслеживаемые.',
                 f'\nБот уведомит вас при снижении цены до значения - {str(threshold)}.',
-                sep='',
-            ),
-        )
-
-    @staticmethod
-    def product_added_yet_w_threshold(product_id: int, threshold: Decimal) -> str:
-        return typing.cast(
-            str,
-            fmt.text(
-                'Товар ',
-                fmt.hlink(str(product_id), form_url_from_product_id(product_id)),
-                ' уже добавлен в отслеживаемые.',
-                f' Бот уведомит вас при снижении цены до значения - {str(threshold)}.',
                 sep='',
             ),
         )
@@ -132,24 +108,24 @@ class Messages:
         )
 
     @staticmethod
-    def product_deleted(product_id: int) -> str:
+    def product_deleted(product: Product) -> str:
         return typing.cast(
             str,
             fmt.text(
                 'Товар ',
-                fmt.hlink(str(product_id), form_url_from_product_id(product_id)),
+                fmt.hlink(str(product.id), ProductService.form_url_by_product(product)),
                 ' удален из отслеживаемых',
                 sep='',
             ),
         )
 
     @staticmethod
-    def product_deleted_not_found(product_id: int) -> str:
+    def product_deleted_not_found(product: Product) -> str:
         return typing.cast(
             str,
             fmt.text(
                 'Товар ',
-                fmt.hlink(str(product_id), form_url_from_product_id(product_id)),
+                fmt.hlink(str(product.id), ProductService.form_url_by_product(product)),
                 ' не найден в списке отслеживаемых',
                 sep='',
             ),
@@ -215,7 +191,7 @@ class Messages:
             str,
             fmt.text(
                 'Цена на товар ',
-                f'"{fmt.hlink(str(product.title), form_url_from_product_id(product.id))}"',
+                f'"{fmt.hlink(str(product.title), ProductService.form_url_by_product(product))}"',
                 'стала ',
                 fmt.hbold(f'{product.price}!'),
                 sep='',

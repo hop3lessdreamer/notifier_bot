@@ -1,6 +1,7 @@
 """ Product's schema """
 from dataclasses import dataclass
 from decimal import Decimal
+from enum import StrEnum
 from functools import cached_property
 from typing import Any
 
@@ -12,11 +13,19 @@ from utils.transform_types import get_decimal
 from utils.types import b64
 
 
+class MPType(StrEnum):
+    """Market Place type"""
+
+    WB: str = 'WB'
+    OZON: str = 'OZON'
+
+
 class Product(BaseModel):
     id: PositiveInt = Field(alias='ID')
     price: Decimal = Field(alias='Price', gt=0)
     img: bytes = Field(alias='Img', min_length=1)
     title: str = Field(alias='Title', min_length=1)
+    mp_type: MPType = Field(alias='MPType')
 
     @field_validator('price', mode='after')
     @classmethod
@@ -33,6 +42,7 @@ class Product(BaseModel):
                 Price=get_decimal(prod_info['salePriceU'] / 100, 2),
                 Img=prod_img,
                 Title=f'{prod_info["brand"]}/{prod_info["name"]}',
+                MPType=MPType.WB,
             )
         except BaseException as ex:
             raise WbApiError(f'Не удалось получить Product из {prod_info}!') from ex

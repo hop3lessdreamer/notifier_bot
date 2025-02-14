@@ -3,6 +3,7 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
+from loguru import logger
 from sqlalchemy import Engine, NullPool, create_engine
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
@@ -13,7 +14,6 @@ from sqlalchemy.ext.asyncio import (
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 
 from config import bot_config
-from logger import logger
 
 
 @dataclass(slots=True)

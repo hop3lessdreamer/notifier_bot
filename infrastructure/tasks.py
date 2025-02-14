@@ -2,6 +2,7 @@ from faststream import FastStream
 from faststream.rabbit import RabbitBroker
 
 from config import bot_config
+from core.services.ozon import OzonService
 from core.services.price_checker import PriceCheckerService
 from core.services.product import ProductService
 from core.services.subscription import SubscriptionService
@@ -43,5 +44,6 @@ async def check_wb_price() -> None:
             ProductService(ProductRepoImpl(db)),  # noqa
         ),
         WbService(WbProductImgService(), WbProductInfoService()),
+        OzonService(),
     )
-    await price_checker.wb_price_check()  # noqa
+    await price_checker.check_prod_prices()  # noqa

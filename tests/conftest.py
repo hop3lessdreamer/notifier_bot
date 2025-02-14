@@ -35,7 +35,7 @@ def clear_tables():
 def setup_db():
     assert test_config.MODE == 'TEST', 'using a non-test environment!'
 
-    db.drop_db(Base)
-    db.init_db(Base)
-    yield
-    db.drop_db(Base)
+    # db.drop_db(Base)
+    # db.init_db(Base)
+    # yield
+    # db.drop_db(Base)

@@ -13,6 +13,14 @@ class WbApiError(ResponseError):
     ...
 
 
+class OzonApiError(ResponseError):
+    ...
+
+
+class WbProductValidateError(ValidateError):
+    ...
+
+
 class OzonProductValidateError(ValidateError):
     ...
 

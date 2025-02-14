@@ -2,7 +2,6 @@ from aiogram import Router
 
 from core.tg.handlers import (
     choose_action_handler,
-    choose_marketplace,
     delete_subscriptions_handler,
     menu,
     on_notify_handler,
@@ -17,7 +16,6 @@ from core.tg.handlers import (
 def get_main_router() -> Router:
     router = Router()
     router.include_router(choose_action_handler.router)
-    router.include_router(choose_marketplace.router)
     router.include_router(delete_subscriptions_handler.router)
     router.include_router(menu.router)
     router.include_router(on_notify_handler.router)

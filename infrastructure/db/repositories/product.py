@@ -20,7 +20,13 @@ class ProductRepoImpl(IProductRepo):
         async with await self.db_conn() as session:
             prod_result: Result = await session.execute(
                 insert(ProductModel)
-                .values(ID=product.id, Price=product.price, Img=product.img, Title=product.title)
+                .values(
+                    ID=product.id,
+                    Price=product.price,
+                    Img=product.img,
+                    Title=product.title,
+                    MPType=product.mp_type,
+                )
                 .returning(ProductModel)
             )
             await session.commit()

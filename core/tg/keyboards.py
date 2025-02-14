@@ -1,6 +1,7 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 from core.schemas.sub_product import SubProductCollection
+from core.services.product import ProductService
 from core.tg.buttons import (
     ACTIONS_ON_NOTIFY,
     ACTIONS_W_PRODUCT_IF_EXIST_SUBSCRIPTION_AND_CHOSEN_W_THR,
@@ -12,10 +13,9 @@ from core.tg.buttons import (
     ACTIONS_WITH_SUBSCRIPTIONS_WO_NAV,
     AVAILABLE_ACTIONS,
     AVAILABLE_ACTIONS_W_EMPTY_SUBS,
-    AVAILABLE_MARKET_PLACES,
     MENU_BTN,
+    MP_TYPES,
 )
-from core.wb import form_url_from_product_id
 
 
 class MenuKeyboard(InlineKeyboardMarkup):
@@ -34,13 +34,13 @@ class ProductKeyboard(InlineKeyboardMarkup):
 
 
 class SubsNavigationKeyboard(InlineKeyboardMarkup):
-    def __init__(self, subs: SubProductCollection, product_id: int | None = None) -> None:
+    def __init__(self, subs: SubProductCollection) -> None:
         buttons: list[list[InlineKeyboardButton]] = [
             [
                 InlineKeyboardButton(
                     text='Открыть карточку товара',
                     callback_data='open_product_card',
-                    url=form_url_from_product_id(product_id or subs.sub_by_cur_pos.product.id),
+                    url=ProductService.form_url_by_product(subs.sub_by_cur_pos.product),
                 ),
             ]
         ]
@@ -77,6 +77,6 @@ class MenuBtnKeyboard(InlineKeyboardMarkup):
         super().__init__(inline_keyboard=[[MENU_BTN]])
 
 
-class MarketPlaceKeyboard(InlineKeyboardMarkup):
+class ChooseMPType(InlineKeyboardMarkup):
     def __init__(self) -> None:
-        super().__init__(inline_keyboard=[AVAILABLE_MARKET_PLACES])
+        super().__init__(inline_keyboard=MP_TYPES)

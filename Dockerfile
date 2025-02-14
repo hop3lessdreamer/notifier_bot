@@ -13,6 +13,6 @@ RUN echo "Installing poetry..." && pip install poetry
 COPY pyproject.toml poetry.lock ./
 RUN poetry config virtualenvs.create false  # Disable virtualenv creation to avoid cache issues
 # RUN poetry cache clear
-RUN echo "Installing dependencies..." && poetry install --no-interaction --no-root --no-dev --only main
+RUN echo "Installing dependencies..." && poetry install --no-interaction --no-root --only main
 
 COPY . .

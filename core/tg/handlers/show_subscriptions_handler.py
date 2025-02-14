@@ -1,5 +1,6 @@
 from aiogram import F, Router
 from aiogram.types import CallbackQuery, InputMediaPhoto
+from loguru import logger
 
 from core.schemas.sub_product import SubProduct, SubProductCollection
 from core.services.subscription import SubscriptionService
@@ -13,7 +14,6 @@ from core.tg.keyboards import (
 from core.tg.message_texts import Messages as Msg
 from core.tg.notifier_state import NotifierState
 from core.tg.storage import Context
-from logger import logger as loguru_logger
 
 router = Router(name='show_sub_router')
 
@@ -59,7 +59,7 @@ async def delete_subscribe(
     sub_collection: SubProductCollection = await state.storage.get_subs_info(state.key)
     if not sub_collection.sub_by_cur_pos:
         await call.message.answer(Msg.subscriptions_not_found(), reply_markup=MenuKeyboard())
-        loguru_logger.error('Не удалось получить подписки из state.storage!')
+        logger.error('Не удалось получить подписки из state.storage!')
         return
 
     await sub_service.delete_sub(
@@ -71,9 +71,7 @@ async def delete_subscribe(
     with transferring_file(deleted_sub.product.img) as photo:
         await call.message.edit_media(
             InputMediaPhoto(media=photo, caption=Msg.subscription(sub_collection)),
-            reply_markup=SubsNavigationKeyboard(
-                subs=sub_collection, product_id=deleted_sub.product.id
-            ),
+            reply_markup=SubsNavigationKeyboard(subs=sub_collection),
         )
     await call.message.answer(Msg.info_about_deletion(deleted_sub))
     await state.storage.write_subs(state.key, sub_collection)
@@ -108,14 +106,14 @@ async def prev_product_card(
 ) -> None:
     sub_collection: SubProductCollection = await state.storage.get_subs_info(state.key)
     if not sub_collection.sub_by_cur_pos:
-        loguru_logger.error('Не удалось получить подписки из state.storage!')
+        logger.error('Не удалось получить подписки из state.storage!')
         return
 
-    loguru_logger.info(f'sub_collection.cur_pos = {sub_collection.cur_pos}')
+    logger.info(f'sub_collection.cur_pos = {sub_collection.cur_pos}')
     sub_service.shift_backward_pos_by_sub_collection(sub_collection)
     sub = sub_collection.sub_by_cur_pos
-    loguru_logger.info(f'sub = {sub}')
-    loguru_logger.info(f'sub_collection.cur_pos = {sub_collection.cur_pos}')
+    logger.info(f'sub = {sub}')
+    logger.info(f'sub_collection.cur_pos = {sub_collection.cur_pos}')
     with transferring_file(sub.product.img) as photo:
         await call.message.edit_media(
             InputMediaPhoto(media=photo, caption=Msg.subscription(sub_collection)),
@@ -131,12 +129,12 @@ async def next_product_card(
 ) -> None:
     sub_collection: SubProductCollection = await state.storage.get_subs_info(state.key)
     if not sub_collection.sub_by_cur_pos:
-        loguru_logger.error('Не удалось получить подписки из state.storage!')
+        logger.error('Не удалось получить подписки из state.storage!')
         return
 
-    loguru_logger.info(f'sub_collection.cur_pos = {sub_collection.cur_pos}')
+    logger.info(f'sub_collection.cur_pos = {sub_collection.cur_pos}')
     await sub_service.shift_forward_pos_by_sub_collection(sub_collection, state.key.user_id)
-    loguru_logger.info(f'sub_collection.cur_pos = {sub_collection.cur_pos}')
+    logger.info(f'sub_collection.cur_pos = {sub_collection.cur_pos}')
 
     with transferring_file(sub_collection.sub_by_cur_pos.product.img) as photo:
         await call.message.edit_media(

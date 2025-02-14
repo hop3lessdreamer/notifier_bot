@@ -2,13 +2,7 @@
 
 from aiogram.types import InlineKeyboardButton
 
-AVAILABLE_MARKET_PLACES = (
-    InlineKeyboardButton(text='Wildberries', callback_data='wildberries'),
-    InlineKeyboardButton(text='OZON', callback_data='ozon'),
-)
-
 AVAILABLE_ACTIONS = [
-    [InlineKeyboardButton(text='Перевыбрать маркетплейс', callback_data='choose_marketplace')],
     [InlineKeyboardButton(text='Следить за товаром', callback_data='ask_product_id')],
     [
         InlineKeyboardButton(
@@ -19,7 +13,6 @@ AVAILABLE_ACTIONS = [
 ]
 
 AVAILABLE_ACTIONS_W_EMPTY_SUBS = [
-    [InlineKeyboardButton(text='Перевыбрать маркетплейс', callback_data='choose_marketplace')],
     [InlineKeyboardButton(text='Следить за товаром', callback_data='ask_product_id')],
 ]
 
@@ -95,3 +88,8 @@ CHANGE_THRESHOLD_ON_NOTIFY = InlineKeyboardButton(
 )
 
 ACTIONS_ON_NOTIFY = [[CHANGE_THRESHOLD_ON_NOTIFY]]
+
+
+WB_MP_TYPE = InlineKeyboardButton(text='Wildberries', callback_data='wb_mp_type')
+OZON_MP_TYPE = InlineKeyboardButton(text='OZON', callback_data='ozon_mp_type')
+MP_TYPES = [[WB_MP_TYPE, OZON_MP_TYPE]]

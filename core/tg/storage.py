@@ -12,6 +12,7 @@ from core.schemas.sub_product import SubProduct, SubProductCollection
 
 class Storage(RedisStorage):
     PRODUCT_KEY: str = 'product'
+    PRODUCT_ID_KEY: str = 'product_id'
     SUBS_KEY: str = 'subs'
 
     async def get_subs_info(self, key: StorageKey) -> SubProductCollection:
@@ -28,8 +29,18 @@ class Storage(RedisStorage):
             raise ValueError('Не удалось получить информацию о продукте из хранилища!')
         return product
 
+    async def get_prod_id(self, key: StorageKey) -> int:
+        data: dict[str, Any] = await self.get_data(key)
+        prod_id: int | None = data.get(self.PRODUCT_ID_KEY)
+        if not prod_id:
+            raise ValueError('Не удалось получить информацию о Ид продукта из хранилища!')
+        return prod_id
+
     async def write_product(self, key: StorageKey, product: Product) -> None:
         await self.set_data(key, {self.PRODUCT_KEY: product.model_dump_json(by_alias=True)})
+
+    async def write_prod_id(self, key: StorageKey, prod_id: int) -> None:
+        await self.set_data(key, {self.PRODUCT_ID_KEY: prod_id})
 
     async def init_subs(
         self, key: StorageKey, subs: list[SubProduct], sub_cnt: int
